@@ -1,3 +1,0 @@
-{
-    "Command": "/home/wyp/SE2/Wasm-SE/eunomia_entry.py -f dnet.wasm --onlyfunc sss -p -s"
-}
