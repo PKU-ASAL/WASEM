@@ -1,0 +1,3 @@
+{
+    "Command": "eunomia_entry.py -f dnet.wasm --onlyfunc sss -p -s"
+}

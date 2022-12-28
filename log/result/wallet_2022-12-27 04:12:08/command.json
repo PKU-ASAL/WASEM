@@ -1,0 +1,3 @@
+{
+    "Command": "eunomia_entry.py -f wallet.wasm --visualize --onlyfunc sgx_ecall_create_wallet -s"
+}

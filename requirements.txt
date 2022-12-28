@@ -1,0 +1,14 @@
+# CFG graphical view
+graphviz>=0.9
+
+z3-solver==4.8.12
+
+# WASM / EOS
+wasm==1.2
+
+# DWARF debug info
+pyelftools==0.27
+
+# for test.py
+pytest
+sh
