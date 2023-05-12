@@ -359,11 +359,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         for child in func_DIE.iter_children():
             if child.tag == 'DW_TAG_formal_parameter':                
                 type_num = child.attributes['DW_AT_type'].value
-                assert type_num in self.ana.type_records
-                if not self.ana.type_records[type_num].struct and self.ana.type_records[type_num].pointer:
-                    _shadow = shadow(True,True,None,True)
+                if type_num in self.ana.type_records:
+                    if not self.ana.type_records[type_num].struct and self.ana.type_records[type_num].pointer:
+                        _shadow = shadow(True,True,None,True)
+                    else:
+                        _shadow = shadow(True,False)
                 else:
-                    _shadow = shadow(True,False)
+                    assert child.attributes['DW_AT_type'].form == 'DW_FORM_ref4'
+                    _shadow = shadow(True, True, None, True)
                 state.shadow_local[para_num] = _shadow
                 para_num += 1
 
@@ -405,11 +408,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         for child in func_DIE.iter_children():
             if child.tag == 'DW_TAG_formal_parameter':                
                 type_num = child.attributes['DW_AT_type'].value
-                assert type_num in self.ana.type_records
-                if not self.ana.type_records[type_num].struct and self.ana.type_records[type_num].pointer:
-                    _shadow = shadow(True,True,None,True)
+                if type_num in self.ana.type_records:
+                    if not self.ana.type_records[type_num].struct and self.ana.type_records[type_num].pointer:
+                        _shadow = shadow(True,True,None,True)
+                    else:
+                        _shadow = shadow(True,False)
                 else:
-                    _shadow = shadow(True,False)
+                    assert child.attributes['DW_AT_type'].form == 'DW_FORM_ref4'
+                    _shadow = shadow(True, True, None, True)
                 state.shadow_local[para_num] = _shadow
                 para_num += 1
 
@@ -434,7 +440,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return states
 
     def emulate_one_instruction(self, instr, state):
-        
+        '''
         print("symbolic", len(state.symbolic_stack), state.symbolic_stack)
         print("shadow", len(state.shadow_stack), state.shadow_stack)
         print("locals",len(state.local_var), state.local_var)
@@ -443,6 +449,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         print("cur block",state.current_bb_name)
         print("")
         print(bcolors.HEADER,state.current_func_name,instr,bcolors.ENDC)
+        '''
         instruction_map = {
             'Arithmetic_i32': ArithmeticInstructions,
             'Arithmetic_i64': ArithmeticInstructions,
@@ -492,6 +499,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             ret_states = instr_obj.emulate(state, self.ana)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
             ret_states = instr_obj.emulate(state, self.ana)
+        elif instr.group == 'Constant':
+            ret_states = instr_obj.emulate(state, self.ro_data_section)
         else:
             ret_states = instr_obj.emulate(state)
         

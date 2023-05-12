@@ -15,7 +15,7 @@ class ConstantInstructions:
         self.instr_str = instr_string
 
     # TODO overflow check in this function?
-    def emulate(self, state):
+    def emulate(self, state, ro_data_section):
         # there are two types of const: i and f, like:
         # i32.const 0
         # f64.const 0x1.9p+6 (;=100;)
@@ -27,10 +27,16 @@ class ConstantInstructions:
         if const_type_prefix == 'i32':
             state.symbolic_stack.append(BitVecVal(const_num, 32))
 
+
+            const_num = int(const_num)
             _shadow = shadow(False, False)
             for low, up in state.memory_manager.data_section:
                 if low == const_num:
                     _shadow = shadow(False, True, BitVecVal(const_num, 32), False, up - low, False)
+                    break
+            for low, up in ro_data_section:
+                if const_num >= low and const_num < up:
+                    _shadow = shadow(False, True, low, False, up - low)
                     break
 
             state.shadow_stack.append(_shadow)

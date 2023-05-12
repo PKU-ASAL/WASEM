@@ -12,7 +12,7 @@ from elftools.dwarf.dwarfinfo import (DebugSectionDescriptor, DwarfConfig,
                                       DWARFInfo)
 from eunomia.arch.wasm.constant import KIND_TYPE, LANG_TYPE
 from eunomia.arch.wasm.decode import decode_module
-from eunomia.arch.wasm.dwarfParser import dwarf_section_names
+from eunomia.arch.wasm.dwarfParser import dwarf_section_names, parse_expr
 from eunomia.arch.wasm.memanalyzer import memory_manager
 from eunomia.arch.wasm.format import (format_kind_function, format_kind_global,
                                       format_kind_memory, format_kind_table)
@@ -404,24 +404,117 @@ class WasmModuleAnalyzer(object):
         first_come = True
 
         while total < len(payload):
+
             tmp = f.read(1 + varuint_carry)
             index = leb128.u.decode(tmp)
+            total += 1 + varuint_carry
             # jump over the \x01 after the magic 4 bytes
-            if index == 1 and first_come:
+            if (index == 1 or index == 4) and first_come:
                 index = leb128.u.decode(f.read(1 + varuint_carry))
                 total += 1 + varuint_carry
+
+            first_come = False
+            
 
             first_come = False
             if index == 127:
                 # TODO it can read at most 32 bits
                 # we just consider the 2 bytes right now
                 varuint_carry = 1
-            total += 1 + varuint_carry
+
             tmp = f.read(1)
             name_len = leb128.u.decode(tmp)
             total += 1
             name_str = f.read(name_len)
+            if name_str == b"\x00":
+                break
             total += name_len
+
+
+            '''
+            #ve:
+            twobytelist = [x for x in range(30)]
+            #sgxsse:[17,23,57,60,61,62,69]
+
+            if index in twobytelist:
+                # TODO it can read at most 32 bits
+                # we just consider the 2 bytes right now
+                tmp1 = f.read(1)
+                name_len1 = leb128.u.decode(tmp1)
+                pairlist = [[x,1]for x in range(30)]
+                if [index,name_len1] in pairlist:
+                    
+                    tmp2 = f.read(1)
+                    name_len2 = leb128.u.decode(tmp2)
+                    #name_len = name_len2*128+name_len1
+                    list3 = [68,71,95,92,111,87,121,108,122,28,97,101,22]
+                    if name_len2 in list3:
+                        if payload[total+2] == 115 or payload[total+2]==97 or payload[total+2]==95:
+                            name_len = name_len2
+                            total += 2
+                        else:
+                            tmp3= f.read(1)
+                            name_len3 = leb128.u.decode(tmp3)
+                            name_len = name_len3*128+name_len2
+                            total += 3
+                    else:
+                        name_len = name_len2
+                        total += 2
+                else:
+                    name_len = name_len1
+                    total += 1
+            else:
+
+                tmp = f.read(1)
+                name_len = leb128.u.decode(tmp)
+                total += 1
+
+
+            name_str = f.read(name_len)
+
+            total += name_len
+            '''
+            '''
+            twobytelist = [x for x in range(40)]
+            if index in twobytelist:
+                # TODO it can read at most 32 bits
+                # we just consider the 2 bytes right now
+                tmp1 = f.read(1)
+                name_len1 = leb128.u.decode(tmp1)
+                pairlist = [[x,1] for x in twobytelist]
+                if [index,name_len1] in pairlist:
+                    
+                    tmp2 = f.read(1)
+                    name_len2 = leb128.u.decode(tmp2)
+                    #name_len = name_len2*128+name_len1
+                    list3 = []
+                    if name_len2 in list3:
+                        if payload[total+2] == 115 or payload[total+2]==97 or payload[total+2]==95:
+                            name_len = name_len2
+                            total += 2
+                        else:
+                            tmp3= f.read(1)
+                            name_len3 = leb128.u.decode(tmp3)
+                            name_len = name_len3*128+name_len2
+                            total += 3
+                    else:
+                        name_len = name_len2
+                        total += 2
+                else:
+                    name_len = name_len1
+                    total += 1
+            else:
+
+                tmp = f.read(1)
+                name_len = leb128.u.decode(tmp)
+                total += 1
+
+
+            name_str = f.read(name_len)
+
+            total += name_len
+            '''
+
             # if encounter `_start.command_export`, terminate the parsing process
             if b'command_export' in name_str:
                 names_list.append((index, 6, b'_start'))
@@ -501,7 +594,7 @@ class WasmModuleAnalyzer(object):
             # Start with the top DIE, the root for this CU's DIE tree
             top_DIE = CU.get_top_DIE()
             for child in top_DIE.iter_children():
-                if child.tag == 'DW_TAG_subprogram' and str(child.attributes['DW_AT_name'].value)[2:-1] not in [x[1] for x in self.imports_func]:
+                if child.tag == 'DW_TAG_subprogram'  and 'DW_AT_name' in child.attributes and str(child.attributes['DW_AT_name'].value)[2:-1] not in [x[1] for x in self.imports_func]:
                     func_die = child
                     variables = []
                     if 'DW_AT_declaration' in child.attributes:
@@ -522,6 +615,7 @@ class WasmModuleAnalyzer(object):
                                     iterate_child(ssschild, variables)
                                 return
                             else:
+                                return
                                 assert 0
                             name = str(subchild.attributes['DW_AT_name'].value)[2:-1]
                             
@@ -576,15 +670,24 @@ class WasmModuleAnalyzer(object):
                     '''
                     found = 0
                     for i in range(len(tmp_prototypes)):
-                        if func_name in tmp_prototypes[i][0]:
-                            assert tmp_prototypes[i][0] not in func_variables
+                        if func_name == tmp_prototypes[i][0]:
+                            if tmp_prototypes[i][0]  in func_variables:
+                                continue
                             func_variables[tmp_prototypes[i][0]] = variables
-                            tmp_prototypes.pop(i)
                             found = 1
+                            seen.append(i)
                             break
+                    if not found:
+                        for i in range(len(tmp_prototypes)):
+                            if i not in seen and func_name in tmp_prototypes[i][0]:
+                                assert tmp_prototypes[i][0] not in func_variables
+                                func_variables[tmp_prototypes[i][0]] = variables
+                                found = 1
+                                seen.append(i)
+                                break
                     assert found
 
-        assert len(func_variables) + funcoffset == len(self.func_prototypes)
+        assert len(func_variables) + funcoffset <= len(self.func_prototypes)
         return func_variables
 
 

@@ -1,5 +1,5 @@
 # emulate the memory related instructions
-
+from copy import deepcopy
 import re
 from datetime import datetime
 from eunomia.arch.wasm.configuration import bcolors
@@ -151,11 +151,27 @@ def load_instr(instr, state, data_section, analyzer):
 
     if is_bv_value(addr):
         addr = addr.as_long()
-
-    states = lookup_symbolic_memory_data_section(
-        state, data_section, addr, load_length, instr)
-
+        states = lookup_symbolic_memory_data_section(state, data_section, addr, load_length, instr)
+    else:
+        assert(is_bv_value(shadow_base.base))
+        assert(shadow_base.size >= load_length)
+        states = []
+        addr_list = [shadow_base.base]
+        if (shadow_base.base + shadow_base.size - load_length) not in addr_list:
+            addr_list.append(shadow_base.base + shadow_base.size - load_length)
+        if (shadow_base.base + (shadow_base.size - load_length) // 2) not in addr_list:
+            addr_list.append(shadow_base.base + (shadow_base.size - load_length) // 2)
+        for i, _addr in enumerate(addr_list):
+            if i == len(addr_list) - 1:
+                _state = state
+            else:
+                _state = deepcopy(state)
+            _state.solver.add(_addr == addr)
+            states += insert_symbolic_memory(_state, data_section, _addr, load_length, instr)
     return states
+
+
+
     if val.size() != 8 * load_length:
         # we assume the memory are filled by 0 initially
         val = ZeroExt(8 * load_length - val.size(), val)
@@ -289,16 +305,22 @@ def store_instr(instr, state, analyzer):
         addr = addr.as_long()
         states = insert_symbolic_memory(state, addr, stored_length, val, shadow_val)
     elif is_bv(addr):
-        assert is_bv_value(shadow_base.base) and is_bv_value(shadow_base.size)
-
-        if is_bv_value(shadow_base.size):
-            psize = shadow_base.size.as_long()
-        else:
-            psize = shadow_base.size
-
-        
-
-
+        assert(is_bv_value(shadow_base.base) and ((not is_bv(shadow_base.size)) or is_bv_value(shadow_base.size)))
+        assert(shadow_base.size >= stored_length)
+        states = []
+        addr_list = [shadow_base.base]
+        if simplify(shadow_base.base + shadow_base.size - stored_length) not in addr_list:
+            addr_list.append(simplify(shadow_base.base + shadow_base.size - stored_length))
+        if (shadow_base.base + (shadow_base.size - stored_length) // 2) not in addr_list:
+            addr_list.append(simplify(shadow_base.base + (shadow_base.size - stored_length) // 2))
+        for i, _addr in enumerate(addr_list):
+            if i == len(addr_list) - 1:
+                _state = state
+            else:
+                _state = deepcopy(state)
+            _state.solver.add(_addr == addr)
+            states += insert_symbolic_memory(_state, _addr, stored_length, val, shadow_val)
+            
     else:
         assert 0
     return states

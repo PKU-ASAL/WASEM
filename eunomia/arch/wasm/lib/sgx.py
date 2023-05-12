@@ -81,7 +81,7 @@ class SGXStandardFunction:
                     addr = simplify(SignExt(32, addr))
             op1 = (addr + length) <= analyzer.enclave_bounds[0]
             op2 = addr >= analyzer.enclave_bounds[1]
-            op = Or(op1, op2)
+            op = And(length > 0, Or(op1, op2))
 
             no_need_true, no_need_false = False, False
             if unsat == one_time_query_cache(state.solver, op):
@@ -161,15 +161,15 @@ class SGXStandardFunction:
                                 found = 1
                                 base = BitVecVal(low_bound, 32)
                                 if size > malloc_length:
-                                    state.memory_manager.free_list[i] = [low_bound + malloc_length, size - malloc_length]
+                                    new_state.memory_manager.free_list[i] = [low_bound + malloc_length, size - malloc_length]
                                 else:
-                                    state.memory_manager.free_list.pop(i)
-                                state.memory_manager.heap[low_bound] = malloc_length
-                                state.symbolic_stack.append(base)
-                                state.shadow_stack.append(shadow(False, True, base, False, malloc_length, False))
-                                state.symbolic_memory[(low_bound, low_bound + malloc_length)] = ([1])
-                                state.shadow_memory[(low_bound,low_bound + malloc_length)] = None
-                                states.append(state)
+                                    new_state.memory_manager.free_list.pop(i)
+                                new_state.memory_manager.heap[low_bound] = malloc_length
+                                new_state.symbolic_stack.append(base)
+                                new_state.shadow_stack.append(shadow(False, True, base, False, malloc_length, False))
+                                new_state.symbolic_memory[(low_bound, low_bound + malloc_length)] = ([1])
+                                new_state.shadow_memory[(low_bound,low_bound + malloc_length)] = None
+                                states.append(new_state)
                                 break
                         assert found
                         valid_num += 1
@@ -187,6 +187,8 @@ class SGXStandardFunction:
                 for i, bounds in enumerate(state.memory_manager.free_list):
                     low_bound, size = bounds
                     if size >= length_val:
+                        if low_bound == 262144:
+                            print('a')
                         base = BitVecVal(low_bound,32)
                         if size > length_val:
                             state.memory_manager.free_list[i] = [low_bound + length_val, size - length_val]
@@ -208,7 +210,7 @@ class SGXStandardFunction:
                 for malloc_length in length_list:
                     if valid_num == 3:
                         break
-                    op = BitVecVal(malloc_length,32) == length 
+                    op = BitVecVal(malloc_length, 64) == length 
                     if sat == one_time_query_cache(state.solver, op):
                         new_state = copy.deepcopy(state)
                         new_state.solver.add(BitVecVal(malloc_length, 32) == copy.deepcopy(length))
@@ -272,7 +274,7 @@ class SGXStandardFunction:
                 elif i == len(state.memory_manager.free_list) - 1:
                     state.memory_manager.free_list.appned([pointer_val, size]) 
 
-            for low_bound, up_bound in state.symbolic_memory:
+            for low_bound, up_bound in list(state.symbolic_memory.keys()):
                 if low_bound < pointer_up_bound and up_bound > pointer_val:
                     assert low_bound >= pointer_val and up_bound <= pointer_up_bound
                     state.symbolic_memory.pop((low_bound, up_bound))
@@ -377,16 +379,17 @@ class SGXStandardFunction:
             else:
                 addr = pointer.as_long()
                 assert addr >= HEAP_BASE and addr < HEAP_BASE + MAX_HEAP_SIZE
-                assert unsat == one_time_query_cache(state.solver, (length!=shadow_pointer.size))
+                assert unsat == one_time_query_cache(state.solver, (length != shadow_pointer.size))
                 memory_maps = [x for x in state.symbolic_memory]
+                found = 0
                 for low,up in memory_maps:
-                    if low < addr + MAX_DEFAULT_MALLLOC_SIZE and up > addr:
-                        assert low >= addr and up <= addr + MAX_DEFAULT_MALLLOC_SIZE
-                        state.symbolic_memory.pop((low, up))
-                        state.shadow_memory.pop((low, up))
-                state.symbolic_memory[(addr, addr + MAX_DEFAULT_MALLLOC_SIZE)] = [2, val.as_long()]
-                state.shadow_memory[(addr, addr + MAX_DEFAULT_MALLLOC_SIZE)] = shadow(False, False)
-
+                    if low <= addr  and up > addr:
+                        assert low == addr
+                        state.symbolic_memory[(low, up)] = [2, val.as_long()]
+                        state.shadow_memory[(low, up)] = shadow(False, False)
+                        found = 1
+                        break
+                assert found == 1
                 
             state.symbolic_stack.append(pointer)
             state.shadow_stack.append(shadow_pointer)
@@ -405,6 +408,13 @@ class SGXStandardFunction:
                 assert dst in state.memory_manager.heap
                 state.symbolic_memory[dst, dst + state.memory_manager.heap[dst]] = [3]
                 state.shadow_memory[dst, dst + state.memory_manager.heap[dst]] = shadow(True, -1)
+                state.symbolic_stack.append(BitVecVal(0,32))
+                state.shadow_stack.append(shadow(False,False))
+                return [state]
+
+            if not is_bv_value(dst) and is_bv_value(src):
+                op = And(dst >= BitVecVal(analyzer.enclave_bounds[0],32), dst <= BitVecVal(analyzer.enclave_bounds[0],32))
+                assert unsat == one_time_query_cache(state.solver, op)
                 state.symbolic_stack.append(BitVecVal(0,32))
                 state.shadow_stack.append(shadow(False,False))
                 return [state]

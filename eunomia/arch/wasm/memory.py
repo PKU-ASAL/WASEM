@@ -377,6 +377,30 @@ def insert_symbolic_memory(state, dest, length, data, shadow_data):
                             symbolic_memory[(dest + length, up)] = [2, setvalue]
                             shadow_memory[(dest + length, up)] = shadow(False, False)
                         return [state]
+                    elif isinstance(symbolic_memory[(low,up)],list) and symbolic_memory[(low,up)][0] == 1:
+                        symbolic_memory.pop((low, up))
+                        shadow_memory.pop((low, up))
+                        symbolic_memory[(dest, dest+length)] = data
+                        shadow_memory[(dest, dest+length)] = shadow_data
+                        if dest > low:
+                            symbolic_memory[(low, dest)] = [1]
+                            shadow_memory[(low, dest)] = None
+                        if dest + length < up:
+                            symbolic_memory[(dest + length, up)] = [1]
+                            shadow_memory[(dest + length, up)] = None
+                        return [state]
+                    elif isinstance(symbolic_memory[(low,up)],list) and symbolic_memory[(low,up)][0] == 3:
+                        symbolic_memory.pop((low, up))
+                        shadow_memory.pop((low, up))
+                        symbolic_memory[(dest, dest+length)] = data
+                        shadow_memory[(dest, dest+length)] = shadow_data
+                        if dest > low:
+                            symbolic_memory[(low, dest)] = [3]
+                            shadow_memory[(low, dest)] = shadow(True, -1)
+                        if dest + length < up:
+                            symbolic_memory[(dest + length, up)] = [3]
+                            shadow_memory[(dest + length, up)] = shadow(True, -1)
+                        return [state]
                     else:
                         assert low == dest and up == dest + length
             symbolic_memory[(dest, dest+length)] = data

@@ -212,7 +212,7 @@ class ConversionInstructions:
             if shadow0.pointer:
                 state.shadow_stack.append(shadow(shadow0.taint, shadow0.pointer, shadow0.base, shadow0.base_taint, shadow0.size, shadow0.stack_pointer))
             else:
-                state.shadow_Stack.append(shadow(shadow0.taint, shadow0.pointer))
+                state.shadow_stack.append(shadow(shadow0.taint, shadow0.pointer))
         else:
             state.shadow_stack.append(shadow(shadow0.taint, False))
 

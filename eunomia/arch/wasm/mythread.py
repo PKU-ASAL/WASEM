@@ -92,7 +92,7 @@ def multi_thread_process(octocode, namelist, Ecall_list):
     for thread in threadlist:
         thread.start()
 
-    sleep(36000)
+    sleep(43200)
     alive = False
 
     for thread in threadlist:

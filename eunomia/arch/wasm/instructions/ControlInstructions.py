@@ -208,7 +208,7 @@ class ControlInstructions:
         elif self.instr_name == 'br_if' or self.instr_name == 'if':
             op = state.symbolic_stack.pop()
             shadow = state.shadow_stack.pop()
-            assert not shadow.pointer
+            assert not (shadow.pointer == True or shadow.pointer > 0)
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `br_if`/`if` is {type(op)} instead of bv or bool"
             states = []
