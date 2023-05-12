@@ -32,9 +32,9 @@ wasm2wat xxx.wasm -o xxx.wat
 We have successfully compile some benchmarks and you can find them in Benchmarks/
 
 
-###Usage
+## Analyze
 You can run the sample codes in Benchmarks by running the run.sh and specify the benchmark you want to run. We take sgx-dent as an example and you can run it with the command:
 
 ```shell
-
+./run.sh sgx-dnet
 ```
