@@ -405,27 +405,28 @@ class WasmModuleAnalyzer(object):
 
         while total < len(payload):
 
-            tmp = f.read(1 + varuint_carry)
+            tmp = payload[total : total + 1 + varuint_carry]
             index = leb128.u.decode(tmp)
             total += 1 + varuint_carry
             # jump over the \x01 after the magic 4 bytes
             if (index == 1 or index == 4) and first_come:
-                index = leb128.u.decode(f.read(1 + varuint_carry))
+                index = leb128.u.decode(payload[total: total + 1 + varuint_carry])
                 total += 1 + varuint_carry
 
             first_come = False
-            
 
-            first_come = False
             if index == 127:
                 # TODO it can read at most 32 bits
                 # we just consider the 2 bytes right now
                 varuint_carry = 1
 
-            tmp = f.read(1)
+            tmp = payload[total: total+1]
             name_len = leb128.u.decode(tmp)
             total += 1
-            name_str = f.read(name_len)
+            if (leb128.u.decode(payload[total+name_len:total+name_len + 1 +varuint_carry]) != index + 1):
+                name_len = leb128.u.decode(payload[total-1:total + 1])
+                total += 1
+            name_str = payload[total: total + name_len]
             if name_str == b"\x00":
                 break
             total += name_len

@@ -187,8 +187,6 @@ class SGXStandardFunction:
                 for i, bounds in enumerate(state.memory_manager.free_list):
                     low_bound, size = bounds
                     if size >= length_val:
-                        if low_bound == 262144:
-                            print('a')
                         base = BitVecVal(low_bound,32)
                         if size > length_val:
                             state.memory_manager.free_list[i] = [low_bound + length_val, size - length_val]
@@ -613,7 +611,7 @@ class SGXStandardFunction:
                 shadow_val = shadow(True, -1)
 
             else:
-                if src >= DATA_BASE and src + length <= state.memory_manager.data_bound:
+                if addr_src >= DATA_BASE and addr_src + length <= state.memory_manager.data_bound:
                     found = 0
                     for low, up in analyzer.data_section:
                         if low <= src and src + length <= up:
@@ -643,39 +641,46 @@ class SGXStandardFunction:
                                     shadow_val = shadow(False, -1)
                     assert found
                 else:
-                    assert (src >= HEAP_BASE and src + length <= HEAP_BASE + MAX_HEAP_SIZE) or (src >= state.globals[0].as_long() and src + length <= STACK_TOP)
+                    assert (addr_src >= HEAP_BASE and addr_src + length <= HEAP_BASE + MAX_HEAP_SIZE) or (addr_src >= state.globals[0].as_long() and addr_src + length <= STACK_TOP)
                     found = 0
                     for low, up in state.symbolic_memory:
-                        if low <= src and up >= src + length:
-                            assert low == src and up == src + length
+                        if low <= addr_src and up >= addr_src + length:
+                            assert low == addr_src and up == addr_src + length
                             found = 1
                             break
                     assert found
-                    val = state.symbolic_memory[(src, src + length)]
-                    shadow_val = state.shadow_memory[(src, src + length)]
+                    val = state.symbolic_memory[(addr_src, addr_src + length)]
+                    shadow_val = state.shadow_memory[(addr_src, addr_src + length)]
 
 
             if dst_outside != 1:
-                if dst >= DATA_BASE and dst + length <= state.memory_manager.data_bound:
+                if addr_dst >= DATA_BASE and addr_dst + length <= state.memory_manager.data_bound:
                     found = 0
                     for low, up in state.memory_manager.data_section:
-                        if low <= dst and dst + length <= up:
+                        if low <= addr_dst and addr_dst + length <= up:
                             found = 1
-                            assert low == dst and dst + length == up
+                            assert low == addr_dst and addr_dst + length == up
                             state.memory_manager.data_section[(low, up)] = val
                             state.memory_manager.shadow_data_section[(low, up)] = shadow_val
                     assert found
                 else:
-                    assert (dst >= HEAP_BASE and dst + length <= HEAP_BASE + MAX_HEAP_SIZE) or (dst >= state.globals[0].as_long() and dst + length <= STACK_TOP)
+                    assert (addr_dst >= HEAP_BASE and addr_dst + length <= HEAP_BASE + MAX_HEAP_SIZE) or (addr_dst >= state.globals[0].as_long() and addr_dst + length <= STACK_TOP)
                     found = 0
                     for low, up in state.symbolic_memory:
-                        if low <= dst and up >= dst+length:
-                            assert low == dst and up == dst + length
+                        if low <= addr_dst and up >= addr_dst+length:
                             found = 1
                             break
                     assert found
-                    state.symbolic_memory[(dst, dst + length)] = val
-                    state.shadow_memory[(dst, dst + length)] = shadow_val
+                    old_val = state.symbolic_memory[(low,up)]
+                    old_shadow = state.shadow_memory[(low,up)]
+                    if (low<addr_dst):
+                        state.symbolic_memory[(low,addr_dst)] = old_val
+                        state.shadow_memory[(low, addr_dst)] = old_shadow
+                    state.symbolic_memory[(addr_dst, addr_dst + length)] = val
+                    state.shadow_memory[(addr_dst, addr_dst + length)] = shadow_val
+                    if (up>addr_dst+length):
+                        state.symbolic_memory[(addr_dst + length , up)] = old_val
+                        state.shadow_memory[(addr_dst + length , up)] = old_shadow
 
             state.symbolic_stack.append(dst)
             state.shadow_stack.append(shadow_dst)

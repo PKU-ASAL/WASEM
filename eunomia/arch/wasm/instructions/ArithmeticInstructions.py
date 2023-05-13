@@ -126,77 +126,80 @@ class ArithmeticInstructions:
 
                 taint = shadow1.taint or shadow2.taint
                 if (shadow1.pointer > 0) or (shadow2.pointer > 0):
-                    assert not(shadow1.pointer > 0 and shadow2.pointer > 0)
-                    assert '.sub' in self.instr_name or '.add' in self.instr_name
-                    if shadow1.pointer > 0:
-                        p = shadow1
-                        offset = shadow2
-                        p_val = arg1
-                        offset_value = arg2
+                    if shadow1.pointer > 0 and shadow2.pointer > 0:
+                        assert '.sub' in self.instr_name
+                        _shadow = shadow(taint, False)
                     else:
-                        p = shadow2
-                        offset = shadow1
-                        p_val = arg2
-                        offset_value = arg1
-                    if p.stack_pointer:
-                        assert is_bv_value(offset_value) and is_bv_value(result)
-                        assert not taint
-                        offset_value = offset_value.as_long()
-                        p_value = p_val.as_long()
-
-                        if '.sub' in self.instr_name:
-                            if analyzer.func_stack_length[state.current_func_name]:
-                                assert analyzer.func_stack_length[state.current_func_name] == offset_value
-                            else:
-                                
-                                func_index = None
-                                func_name = state.current_func_name
-                                if func_name[0] == '$':
-                                    func_index = int(re.match('\$func(.*)', func_name).group(1))
-                                else:
-                                    for index, wat_func_name in Configuration.get_func_index_to_func_name().items():
-                                        if wat_func_name == func_name:
-                                            func_index = index
-                                            break
-
-                                assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
-                                func_info = analyzer.func_prototypes[func_index]
-                                func_index_name, param_str, return_str, func_type = *func_info,
-
-                                if return_str:
-                                    analyzer.func_stack_length[state.current_func_name] = offset_value
-                                    analyzer.func_variables[state.current_func_name].insert(0,['',3,offset_value - 4, 4])
-                                    analyzer.func_variables[state.current_func_name][1][-1] = offset_value - 4 - analyzer.func_variables[state.current_func_name][1][-2]
-                                    if analyzer.func_variables[state.current_func_name][-1][-2] != 0:
-                                        analyzer.func_variables[state.current_func_name].append(['', 4, 0, analyzer.func_variables[state.current_func_name][-1][-2]])
-                                    assert analyzer.func_variables[state.current_func_name][0][-1] >= 0
-                                else:
-                                    analyzer.func_stack_length[state.current_func_name] = offset_value
-                                    analyzer.func_variables[state.current_func_name][0][-1] = offset_value - analyzer.func_variables[state.current_func_name][0][-2]
-                                    if analyzer.func_variables[state.current_func_name][-1][-2] != 0:
-                                        analyzer.func_variables[state.current_func_name].append(['', 4, 0, analyzer.func_variables[state.current_func_name][-1][-2]])
-                                    assert analyzer.func_variables[state.current_func_name][0][-1] >= 0
-                            _shadow = shadow(taint, True, None, None, None, True)
+                        assert '.sub' in self.instr_name or '.add' in self.instr_name
+                        if shadow1.pointer > 0:
+                            p = shadow1
+                            offset = shadow2
+                            p_val = arg1
+                            offset_value = arg2
                         else:
-                            if analyzer.func_stack_length[state.current_func_name] == offset_value:
+                            p = shadow2
+                            offset = shadow1
+                            p_val = arg2
+                            offset_value = arg1
+                        if p.stack_pointer:
+                            assert is_bv_value(offset_value) and is_bv_value(result)
+                            assert not taint
+                            offset_value = offset_value.as_long()
+                            p_value = p_val.as_long()
+
+                            if '.sub' in self.instr_name:
+                                if analyzer.func_stack_length[state.current_func_name]:
+                                    assert analyzer.func_stack_length[state.current_func_name] == offset_value
+                                else:
+                                    
+                                    func_index = None
+                                    func_name = state.current_func_name
+                                    if func_name[0] == '$':
+                                        func_index = int(re.match('\$func(.*)', func_name).group(1))
+                                    else:
+                                        for index, wat_func_name in Configuration.get_func_index_to_func_name().items():
+                                            if wat_func_name == func_name:
+                                                func_index = index
+                                                break
+
+                                    assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
+                                    func_info = analyzer.func_prototypes[func_index]
+                                    func_index_name, param_str, return_str, func_type = *func_info,
+
+                                    if return_str:
+                                        analyzer.func_stack_length[state.current_func_name] = offset_value
+                                        analyzer.func_variables[state.current_func_name].insert(0,['',3,offset_value - 4, 4])
+                                        analyzer.func_variables[state.current_func_name][1][-1] = offset_value - 4 - analyzer.func_variables[state.current_func_name][1][-2]
+                                        if analyzer.func_variables[state.current_func_name][-1][-2] != 0:
+                                            analyzer.func_variables[state.current_func_name].append(['', 4, 0, analyzer.func_variables[state.current_func_name][-1][-2]])
+                                        assert analyzer.func_variables[state.current_func_name][0][-1] >= 0
+                                    else:
+                                        analyzer.func_stack_length[state.current_func_name] = offset_value
+                                        analyzer.func_variables[state.current_func_name][0][-1] = offset_value - analyzer.func_variables[state.current_func_name][0][-2]
+                                        if analyzer.func_variables[state.current_func_name][-1][-2] != 0:
+                                            analyzer.func_variables[state.current_func_name].append(['', 4, 0, analyzer.func_variables[state.current_func_name][-1][-2]])
+                                        assert analyzer.func_variables[state.current_func_name][0][-1] >= 0
                                 _shadow = shadow(taint, True, None, None, None, True)
-                                mem = [x for x in state.symbolic_memory]
-                                for low, up in mem:
-                                    if p_value < up and low < p_value + offset_value:
-                                        assert low >= p_value and up <= p_value + offset_value
-                                        state.symbolic_memory.pop((low,up))
-                                        state.shadow_memory.pop((low,up))
                             else:
-                                func_variables = analyzer.func_variables[state.current_func_name] 
-                                find = 0
-                                for _name, _tag, _offset, _size in func_variables:
-                                    if offset_value >= _offset and offset_value < _offset + _size:
-                                        find = 1
-                                        _shadow = shadow(taint, True, result, False, _offset + _size - offset_value, False)
-                                        break
-                                assert find
-                    else:
-                        _shadow = shadow(taint, True, p.base, p.base_taint, p.size, False)
+                                if analyzer.func_stack_length[state.current_func_name] == offset_value:
+                                    _shadow = shadow(taint, True, None, None, None, True)
+                                    mem = [x for x in state.symbolic_memory]
+                                    for low, up in mem:
+                                        if p_value < up and low < p_value + offset_value:
+                                            assert low >= p_value and up <= p_value + offset_value
+                                            state.symbolic_memory.pop((low,up))
+                                            state.shadow_memory.pop((low,up))
+                                else:
+                                    func_variables = analyzer.func_variables[state.current_func_name] 
+                                    find = 0
+                                    for _name, _tag, _offset, _size in func_variables:
+                                        if offset_value >= _offset and offset_value < _offset + _size:
+                                            find = 1
+                                            _shadow = shadow(taint, True, result, False, _offset + _size - offset_value, False)
+                                            break
+                                    assert find
+                        else:
+                            _shadow = shadow(taint, True, p.base, p.base_taint, p.size, False)
                 else:
                     assert shadow1.pointer == False or shadow1.pointer == -1
                     assert shadow2.pointer == False or shadow2.pointer == -1

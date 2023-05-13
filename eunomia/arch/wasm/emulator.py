@@ -501,6 +501,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             ret_states = instr_obj.emulate(state, self.ana)
         elif instr.group == 'Constant':
             ret_states = instr_obj.emulate(state, self.ro_data_section)
+        elif instr.group == 'Variable':
+            ret_states = instr_obj.emulate(state, self.ana)
         else:
             ret_states = instr_obj.emulate(state)
         

@@ -2,6 +2,9 @@
 
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError, UnsupportGlobalTypeError
 from z3 import BitVecVal, is_bv, is_bv_value
+from eunomia.arch.wasm.utils import getConcreteBitVec, write_vulnerabilities
+from eunomia.arch.wasm.dwarfParser import (get_func_index_from_state,
+                                           get_source_location_string)
 
 
 class VariableInstructions:
@@ -9,7 +12,7 @@ class VariableInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    def emulate(self, state):
+    def emulate(self, state, analyzer):
         # TODO
         # for go_samples.nosync/tinygo_main.wasm, the global.get operand would be prefixed by four \x80
         if self.instr_operand.startswith(b'\x80\x80\x80\x80'):
@@ -56,7 +59,12 @@ class VariableInstructions:
             global_index = op
             global_shadow = state.shadow_stack.pop()
             assert op == 0
-
+            if not is_bv_value(global_operand):
+                assert global_shadow.taint
+                func_ind = get_func_index_from_state(analyzer, state)
+                func_offset = state.instr.offset
+                write_vulnerabilities(state, f"store taint length out of bound{get_source_location_string(analyzer, func_ind, func_offset)}")
+                return []
             state.globals[global_index] = global_operand
             state.shadow_globals[global_index] = global_shadow
         elif self.instr_name == 'tee_local':

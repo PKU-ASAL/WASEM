@@ -111,9 +111,10 @@ def lookup_symbolic_memory_data_section(
                     else:
                         assert 0
                 else:
-                    assert low == dest and up == dest + length
-                    val = symbolic_memory[(dest, dest + length)]
-                    shadow_val = shadow_memory[(dest, dest + length)]
+                    #assert low == dest and up == dest + length
+                    #need revision
+                    val = symbolic_memory[(low, up)]
+                    shadow_val = shadow_memory[(low, up)]
                     break
         assert found
     else:

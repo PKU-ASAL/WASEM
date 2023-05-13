@@ -47,7 +47,6 @@
   (import "env" "abort" (func $abort (type 6)))
   (import "env" "__assert" (func $__assert (type 8)))
   (import "env" "memcpy" (func $memcpy (type 4)))
-  (import "env" "__stack_chk_fail" (func $__stack_chk_fail (type 6)))
   (import "env" "strncpy" (func $strncpy (type 9)))
   (import "env" "_Znam" (func $operator_new___unsigned_long_ (type 1)))
   (import "env" "_ZdaPv" (func $operator_delete___void*_ (type 3)))
@@ -3278,20 +3277,16 @@
     local.tee 2
     global.set $__stack_pointer
     local.get 2
-    i32.const 0
-    i32.load
-    i32.store offset=172
-    local.get 2
     local.get 0
-    i32.store offset=56
+    i32.store offset=168
     local.get 2
     local.get 1
-    i64.store offset=48
+    i64.store offset=160
     block  ;; label = @1
       local.get 2
-      i32.load offset=56
+      i32.load offset=168
       local.get 2
-      i64.load offset=48
+      i64.load offset=160
       call $sgx_is_outside_enclave
       i32.const 1
       i32.ne
@@ -3303,7 +3298,7 @@
       unreachable
     end
     local.get 2
-    i32.const 64
+    i32.const 48
     i32.add
     i32.const 0
     i32.const 100
@@ -3312,7 +3307,7 @@
     block  ;; label = @1
       block  ;; label = @2
         local.get 2
-        i64.load offset=48
+        i64.load offset=160
         i64.const 100
         i64.gt_u
         i32.const 1
@@ -3324,17 +3319,17 @@
         br 1 (;@1;)
       end
       local.get 2
-      i64.load offset=48
+      i64.load offset=160
       local.set 1
     end
     local.get 2
     local.get 1
     i64.store offset=40
     local.get 2
-    i32.const 64
+    i32.const 48
     i32.add
     local.get 2
-    i32.load offset=56
+    i32.load offset=168
     local.get 2
     i64.load offset=40
     i32.wrap_i64
@@ -3342,14 +3337,14 @@
     drop
     local.get 2
     local.get 2
-    i32.const 64
+    i32.const 48
     i32.add
     local.get 2
     i64.load offset=40
     call $checksum_internal_char*__unsigned_long_
     i32.store offset=36
     local.get 2
-    i32.load offset=56
+    i32.load offset=168
     local.set 0
     local.get 2
     i64.load offset=40
@@ -3371,7 +3366,7 @@
     call $printf
     drop
     local.get 2
-    i32.load offset=56
+    i32.load offset=168
     local.set 0
     block  ;; label = @1
       block  ;; label = @2
@@ -3400,16 +3395,6 @@
     local.get 2
     i64.load offset=40
     local.set 1
-    block  ;; label = @1
-      i32.const 0
-      i32.load
-      local.get 2
-      i32.load offset=172
-      i32.eq
-      br_if 0 (;@1;)
-      call $__stack_chk_fail
-      unreachable
-    end
     local.get 2
     i32.const 176
     i32.add
@@ -11151,21 +11136,17 @@
     i32.const -1
     i32.xor)
   (func $printf (type 7) (param i32 i32) (result i32)
-    (local i32)
+    (local i32 i64)
     global.get $__stack_pointer
-    i32.const 8240
+    i32.const 8224
     i32.sub
     local.tee 2
     global.set $__stack_pointer
     local.get 2
-    i32.const 0
-    i32.load
-    i32.store offset=8236
-    local.get 2
     local.get 0
-    i32.store offset=24
+    i32.store offset=8216
     local.get 2
-    i32.const 32
+    i32.const 16
     i32.add
     i32.const 0
     i32.const 8192
@@ -11175,45 +11156,35 @@
     local.get 1
     i32.store
     local.get 2
-    i32.const 32
+    i32.const 16
     i32.add
     i64.const 8192
     local.get 2
-    i32.load offset=24
+    i32.load offset=8216
     local.get 2
     call $vsnprintf
     drop
     local.get 2
     drop
     local.get 2
-    i32.const 32
+    i32.const 16
     i32.add
     call $ocall_print_string
     drop
     local.get 2
-    i32.const 32
+    i32.const 16
     i32.add
     i64.const 8191
     call $strnlen
-    i32.wrap_i64
-    i32.const 1
-    i32.add
-    local.set 0
-    block  ;; label = @1
-      i32.const 0
-      i32.load
-      local.get 2
-      i32.load offset=8236
-      i32.eq
-      br_if 0 (;@1;)
-      call $__stack_chk_fail
-      unreachable
-    end
+    local.set 3
     local.get 2
-    i32.const 8240
+    i32.const 8224
     i32.add
     global.set $__stack_pointer
-    local.get 0)
+    local.get 3
+    i32.wrap_i64
+    i32.const 1
+    i32.add)
   (func $almost_equal_double__double_ (type 30) (param f64 f64) (result i32)
     (local i32)
     global.get $__stack_pointer
