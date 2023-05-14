@@ -1,3 +1,0 @@
-{
-    "Command": "/home/wyp/SE2/Wasm-SE2/eunomia_entry.py -f ve.wasm --onlyfunc sss -p -s"
-}

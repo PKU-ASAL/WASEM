@@ -1,3 +1,0 @@
-{
-    "Command": "/home/wyp/SE2/Wasm-SE2/eunomia_entry.py -f dnet.wasm -s --onlyfunc sgx_ecall_trainer --concrete_globals"
-}

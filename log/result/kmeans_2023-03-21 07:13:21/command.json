@@ -1,3 +1,0 @@
-{
-    "Command": "eunomia_entry.py -f kmeans.wasm --onlyfunc sss -p -s"
-}
