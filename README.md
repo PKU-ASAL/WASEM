@@ -7,7 +7,7 @@ In this project, we have implemented a **symbolic execution framework** for SGX 
 
 
 ##  Prerequisites 
-To run the samples (some simple Wasm files compiled from C), you have to install some python libraries as follows:
+To run SYMGX, you have to install some python libraries as follows:
 
 ```shell
 python3 -m pip install -r requirements.txt
@@ -18,7 +18,7 @@ python3 -m pip install -r requirements.txt
 To analyze the files written in other programming languages, you have to generate the corresponding Wasm file in your local environment. In this section, we would briefly give the instruction about how to compile C/C++ SGX programs into Wasm.
 
 ### Compile
-We compile the C/C++ SGX programs into Wasm files with the help of Wllvm. We first modify the compiler used in the makefile of SGX programs and compile them with the compile flag -g.
+We compile the C/C++ SGX programs into Wasm files with the help of [Wllvm](https://github.com/travitch/whole-program-llvm) and wabt. We first replace the compiler used in the makefile of SGX programs with compilers of wllvm and compile them with the compile flag `-g`.
 
 ```shell
 CC=wllvm CXX=wllvm++ make SGX_MODE=SIM 
@@ -29,12 +29,42 @@ wasm-ld  --no-entry --export-all xxx.o --allow-undefined
 wasm2wat xxx.wasm -o xxx.wat
 ```
 
-We have successfully compile some benchmarks and you can find them in Benchmarks/
+We have successfully compile some benchmarks and you can find them in `Benchmarks/`.
 
 
 ## Analyze
-You can run the sample codes in Benchmarks by running the run.sh and specify the benchmark you want to run. We take sgx-dent as an example and you can run it with the command:
+
+### Input Arguments
+Our tool can be used by running the main.py with correct parameters. There are three arguments needed. The first argument is the name of the wasm file to analyze. The second argument is the ECall list of the program and separated by `,`. The third argument is alternative and is the function list of thr wasm file. If there is a corresponding wat file in the same path of the wasm file, the third argument can be ommitted. For example, to analyze the sgx-dent program, we can execute the following command:
+```shell
+python3 main.py Benchmarks/dnet.wasm sgx_empty_ecall,sgx_ecall_trainer,sgx_ecall_tester,sgx_ecall_classify
+```
+
+It is worth noting that although we set the second and third parameters manually, they can be obtained automatically by automated tools. However, since it is not the main contribution of this work, we leave it for future work.
+
+### Script
+To provide the users a more convenient way to analyze the samples in Benchmarks/, we write a script and you can analyze benchmarks by running the script with the name of the programs you want to analyze. We take sgx-dent as an example and you can run it with the command:
 
 ```shell
 ./run.sh sgx-dnet
 ```
+
+Other programs are sgx-dnet, sgxwallet, SGXCryptoFile, verifiable-election, sgx-log, sgx-kmeans, sgx-reencrypt, CryptoEnclave, sgx-pwenclave, sgx-deep-learning, sgx-biniax2, sgx-rsa, sgx_protect_file, SGXSSE.
+
+### Output
+
+The vulnerability rreports will be generated in the folder log/program-name_time. The format of a vulenrability is as follow.
+```shell
+{
+    "Status": xxx,
+    "Solution": {xxx},
+    "Basic_Blocks": [xxx],
+    "vulnerability": xxx,
+    "iteration round": xxx,
+}
+```
+
+`Solution` represents a set of values that can lead to the vulnerability instruction. `Basic_Blocks` records all the basic blocks met in the execution process, which can be used to restore the execution path and the ECall sequence. `Vulnerability` is the type of the vulnerability. `iteration round` is the round number of the vulnerability state.
+
+## Acknowledgements
+We would like to thank the anonymous reviewers for their valuable feedback and suggestions.
