@@ -66,5 +66,33 @@ The vulnerability rreports will be generated in the folder log/program-name_time
 
 `Solution` represents a set of values that can lead to the vulnerability instruction. `Basic_Blocks` records all the basic blocks met in the execution process, which can be used to restore the execution path and the ECall sequence. `Vulnerability` is the type of the vulnerability. `iteration round` is the round number of the vulnerability state.
 
+## Contributors
+
+The main contributors of WASEM are:
+
+Teachers: Ding Li
+
+Students: Ningyu He, Yuanpeng Wang
+
+## Citations
+
+If you use any of our tools or datasets in your research for publication, please kindly cite the following paper:
+
+```
+@article{he2023eunomia,
+  title={Eunomia: Enabling User-specified Fine-Grained Search in Symbolically Executing WebAssembly Binaries},
+  author={He, Ningyu and Zhao, Zhehao and Wang, Jikai and Hu, Yubin and Guo, Shengjian and Wang, Haoyu and Liang, Guangtai and Li, Ding and Chen, Xiangqun and Guo, Yao},
+  journal={arXiv preprint arXiv:2304.07204},
+  year={2023}
+}
+```
+
+SymGX: Detecting Cross-boundary Pointer Vulnerabilities of SGX Applications via Static Symbolic Execution 
+
+## Feedback
+
+Should you have any question, please post to [the issue page]([Issues · PKU-ASAL/WASEM (github.com)](https://github.com/PKU-ASAL/WASEM/issues)), or email Yuanpeng Wang via [yuanpeng_wang@pku.edu.cn](yuanpeng_wang@pku.edu.cn).
+
 ## Acknowledgements
+
 We would like to thank the anonymous reviewers for their valuable feedback and suggestions.
