@@ -1,5 +1,7 @@
 # SYMGX
 
+![logo](104848503.jfif)
+
 There are many memory vulnerablities hidden in exisitng SGX programs that can be exploited by the adversaries to launch memory attacks. We our goal is to develop a useful tool to detect these vulnerabilities in programs.
 
 In this project, we have implemented a **symbolic execution framework** for SGX programs. Our framework takes the Wasm file compiled from source codes of SGX programs in C/C++, symbolically executes it and generate vulnerability reports of the programs(containing the vulnerability type, report position and the corresponding constraints).
@@ -66,28 +68,34 @@ The vulnerability rreports will be generated in the folder log/program-name_time
 
 `Solution` represents a set of values that can lead to the vulnerability instruction. `Basic_Blocks` records all the basic blocks met in the execution process, which can be used to restore the execution path and the ECall sequence. `Vulnerability` is the type of the vulnerability. `iteration round` is the round number of the vulnerability state.
 
-## Contributors
 
-The main contributors of WASEM are:
-
-Teachers: Ding Li
-
-Students: Ningyu He, Yuanpeng Wang
 
 ## Citations
 
 If you use any of our tools or datasets in your research for publication, please kindly cite the following paper:
 
 ```
-@article{he2023eunomia,
-  title={Eunomia: Enabling User-specified Fine-Grained Search in Symbolically Executing WebAssembly Binaries},
-  author={He, Ningyu and Zhao, Zhehao and Wang, Jikai and Hu, Yubin and Guo, Shengjian and Wang, Haoyu and Liang, Guangtai and Li, Ding and Chen, Xiangqun and Guo, Yao},
-  journal={arXiv preprint arXiv:2304.07204},
-  year={2023}
+@inproceedings{10.1145/3597926.3598064,
+author = {He, Ningyu and Zhao, Zhehao and Wang, Jikai and Hu, Yubin and Guo, Shengjian and Wang, Haoyu and Liang, Guangtai and Li, Ding and Chen, Xiangqun and Guo, Yao},
+title = {Eunomia: Enabling User-Specified Fine-Grained Search in Symbolically Executing WebAssembly Binaries},
+year = {2023},
+isbn = {9798400702211},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3597926.3598064},
+doi = {10.1145/3597926.3598064},
+abstract = {Although existing techniques have proposed automated approaches to alleviate the path explosion problem of symbolic execution, users still need to optimize symbolic execution by applying various searching strategies carefully. As existing approaches mainly support only coarse-grained global searching strategies, they cannot efficiently traverse through complex code structures. In this paper, we propose Eunomia, a symbolic execution technique that supports fine-grained search with local domain knowledge. Eunomia uses Aes, a DSL that lets users specify local searching strategies for different parts of the program. Eunomia also isolates the context of variables for different local searching strategies, avoiding conflicts. We implement Eunomia for WebAssembly, which can analyze applications written in various languages. Eunomia is the first symbolic execution engine that supports the full features of WebAssembly. We evaluate Eunomia with a microbenchmark suite and six real-world applications. Our evaluation shows that Eunomia improves bug detection by up to three orders of magnitude. We also conduct a user study that shows the benefits of using Aes. Moreover, Eunomia verifies six known bugs and detects two new zero-day bugs in Collections-C.},
+booktitle = {Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis},
+pages = {385–397},
+numpages = {13},
+keywords = {WebAssembly, Symbolic Execution, Domain Specific Language, Path Explosion},
+location = {Seattle, WA, USA},
+series = {ISSTA 2023}
 }
+
 ```
 
-SymGX: Detecting Cross-boundary Pointer Vulnerabilities of SGX Applications via Static Symbolic Execution 
+SymGX: Detecting Cross-boundary Pointer Vulnerabilities of SGX Applications via Static Symbolic Execution (to be published in CCS' 23)
 
 ## Feedback
 
