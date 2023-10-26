@@ -1,4 +1,4 @@
-# SYMGX
+# WASEM
 
 ![logo](104848503.jfif)
 
@@ -9,7 +9,7 @@ In this project, we have implemented a **symbolic execution framework** for SGX 
 
 
 ##  Prerequisites 
-To run SYMGX, you have to install some python libraries as follows:
+To run WASEM, you have to install some python libraries as follows:
 
 ```shell
 python3 -m pip install -r requirements.txt
