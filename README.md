@@ -1,6 +1,6 @@
 # WASEM
 
-![logo](104848503.jfif)
+![logo](pic/104848503.jfif)
 
 There are many memory vulnerablities hidden in exisitng SGX programs that can be exploited by the adversaries to launch memory attacks. We our goal is to develop a useful tool to detect these vulnerabilities in programs.
 
