@@ -95,7 +95,15 @@ series = {ISSTA 2023}
 
 ```
 
-SymGX: Detecting Cross-boundary Pointer Vulnerabilities of SGX Applications via Static Symbolic Execution (to be published in CCS' 23)
+```
+@inproceedings{wang2023symgx,
+  title={SymGX: Detecting Cross-boundary Pointer Vulnerabilities of SGX Applications via Static Symbolic Execution},
+  author={Wang, Yuanpeng and Zhang, Ziqi and He, Ningyu and Zhong, Zhineng and Guo, Shengjian and Bao, Qinkun and Li, Ding and Guo, Yao and Chen, Xiangqun},
+  booktitle={Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security},
+  pages={2710--2724},
+  year={2023}
+}
+```
 
 ## Feedback
 
