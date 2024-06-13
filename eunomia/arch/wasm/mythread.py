@@ -64,10 +64,9 @@ class myThread(Thread):
                     f.write("%f %d\n"%(T2-T1, len(block_visit)))  
             else:
                 state_pool_lock.release()
-                print('Thread id : %d get nothing fall asleep' % t.ident)
-                sleep(30)
+                print('Thread id : %d gets nothing, now exits.' % t.ident)
 
-def multi_thread_process(octocode, namelist, Ecall_list):
+def multi_thread_process(octocode, namelist, Ecall_list, max_time):
     global GlobalEcallList
     global statenum
     global basicblock_num
@@ -92,9 +91,13 @@ def multi_thread_process(octocode, namelist, Ecall_list):
     for thread in threadlist:
         thread.start()
 
-    sleep(43200)
-    alive = False
+    start_time = time.time()
+    while any(thread.is_alive() for thread in threadlist):
+        if max_time and time.time() - start_time > max_time:
+            print('Time limit (%d seconds) reached, killing threads' % max_time)
+            alive = False
+            break
+        sleep(1)
 
     for thread in threadlist:
         thread.join()
-    

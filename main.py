@@ -65,16 +65,24 @@ def main():
     analyze.add_argument(
         '-s', '--symbolic', action='store_true',
         help='perform the symbolic execution')
+    analyze.add_argument(
+        '--max-time', action='store', type=int,
+        help='maximum time in seconds')
 
-    symgx = parser.add_argument('--symgx', help='enable the branch of symgx')
+    symgx = parser.add_argument_group('Symgx')
+    symgx.add_argument('--symgx', action='store_true', help='enable the branch of symgx', default=False)
+    symgx.add_argument('--ecall-list', help='ecall list string, separated by commas (`,`)')
+    symgx.add_argument('--func-list', help='function list string, separated by commas (`,`)')
 
     args = parser.parse_args()
 
     if args.symgx:
-        print('0')
+        # ecall_list must be specified
+        if not args.ecall_list:
+            parser.error("--symgx requires --ecall-list")
+            exit(1)
         SymGX(args)
     else:
-        print('1')
         launch(args)
 
 if __name__ == '__main__':

@@ -3,9 +3,9 @@
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime
-from os import makedirs, path
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.pathgraph import Graph
@@ -15,12 +15,14 @@ from eunomia.arch.wasm.mythread import multi_thread_process
 def SymGX(args):
 
     octo_bytecode = args.file.read()
-    Ecall_list = args.symgx.split(",")
+    Ecall_list = args.ecall_list.split(",")
 
-    if len(sys.argv) == 3:
+    if not args.func_list:
         namelist = []
+        filename = os.path.basename(args.file.name)
         watfile = filename[:-5] + ".wat"
-        with open(watfile,'r') as wf:
+        watpath = os.path.join(os.path.dirname(args.file.name), watfile)
+        with open(watpath, 'r') as wf:
             while True:
                 line = wf.readline()
                 if line == "":
@@ -34,13 +36,15 @@ def SymGX(args):
                     namelist.append(name)
         wf.close()
     else:
-        namelist = sys.argv[3].split(",")
-    
+        namelist = args.func_list.split(",")
+
+    if not args.max_time:
+        max_time = 12*60*60
+    else:
+        max_time = args.max_time
+    print("set time limit: %d seconds" % max_time)
+
     # import necessary part
     from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
 
-    multi_thread_process(octo_bytecode, namelist, Ecall_list)
-
-
-
-
+    multi_thread_process(octo_bytecode, namelist, Ecall_list, max_time)
