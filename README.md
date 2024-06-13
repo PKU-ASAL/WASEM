@@ -1,8 +1,8 @@
-# WASEM
+# WASEM [![test](https://github.com/PKU-ASAL/WASEM/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/PKU-ASAL/WASEM/actions/workflows/test.yml)
 
 ![logo](pic/104848503.jfif)
 
-WASEM is a general symbolic execution framework for WebAssembly (WASM) binaries. It serves as the core engine for multiple WASM binary analysis tools (see our ISSTA and CCS paper in the reference section). Our framework processes the WASM file compiled from the source code of C/C++/Rust/Go, performs symbolic execution, and generates detailed vulnerability reports. These reports include the vulnerability type, location, and the corresponding constraints.
+**WASEM is a general symbolic execution framework for WebAssembly (WASM) binaries.** It serves as the **core engine** for multiple **WASM binary analysis** tools *(see our ISSTA and CCS paper in the Citations section)*. Our framework processes the WASM file compiled from the source code of C/C++/Rust/Go, performs symbolic execution, and generates detailed vulnerability reports. These reports include the vulnerability type, location, and the corresponding constraints.
 
 ##  Prerequisites 
 
