@@ -2,7 +2,7 @@
 
 ![logo](pic/104848503.jfif)
 
-SGX programs often contain memory vulnerabilities that adversaries can exploit to initiate memory attacks. Our goal is to develop an effective tool to detect these vulnerabilities.
+WASEM is a general symbolic execution framework for WASM binaries. It is the core engine for multiple WASM binary analysis tools (see our ISSTA and CCS paper in the reference section). Our framework takes the Wasm file compiled from source codes of C/C++/Rust/Go, symbolically executes it and generate vulnerability reports of the programs(containing the vulnerability type, report position and the corresponding constraints).
 
 In this project, we've developed a **symbolic execution framework** for SGX programs. This framework processes WebAssembly (Wasm) files, compiled from the source code of SGX programs written in C/C++. It performs symbolic execution on these files and generates comprehensive vulnerability reports. These reports detail the vulnerability type, its location in the code, and the associated constraints.
 
@@ -136,4 +136,4 @@ If you have any questions or need further clarification, please post on [the iss
 
 ## Acknowledgements
 
-We would like to thank the anonymous reviewers for their valuable feedback and constructive suggestions.
+We would like to thank the anonymous reviewers for their valuable feedback and suggestions.
