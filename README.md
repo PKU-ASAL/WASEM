@@ -2,9 +2,7 @@
 
 ![logo](pic/104848503.jfif)
 
-WASEM is a general symbolic execution framework for WASM binaries. It is the core engine for multiple WASM binary analysis tools (see our ISSTA and CCS paper in the reference section). Our framework takes the Wasm file compiled from source codes of C/C++/Rust/Go, symbolically executes it and generate vulnerability reports of the programs(containing the vulnerability type, report position and the corresponding constraints).
-
-In this project, we've developed a **symbolic execution framework** for SGX programs. This framework processes WebAssembly (Wasm) files, compiled from the source code of SGX programs written in C/C++. It performs symbolic execution on these files and generates comprehensive vulnerability reports. These reports detail the vulnerability type, its location in the code, and the associated constraints.
+WASEM is a general symbolic execution framework for WebAssembly (WASM) binaries. It serves as the core engine for multiple WASM binary analysis tools (see our ISSTA and CCS paper in the reference section). Our framework processes the WASM file compiled from the source code of C/C++/Rust/Go, performs symbolic execution, and generates detailed vulnerability reports. These reports include the vulnerability type, location, and the corresponding constraints.
 
 ##  Prerequisites 
 
@@ -21,11 +19,11 @@ pip install --upgrade pip wheel
 pip install --force-reinstall leb128==1.0.4
 ```
 
-To analyze files written in other programming languages, you must generate the corresponding Wasm file in your local environment. This section provides brief instructions on how to compile C/C++ SGX programs into Wasm.
+To analyze files written in other programming languages, you must generate the corresponding WASM file in your local environment. This section provides brief instructions on how to compile C/C++ SGX programs into WASM.
 
 ### Compilation
 
-We compile the C/C++ SGX programs into Wasm files using [wllvm](https://github.com/travitch/whole-program-llvm) and [wabt](https://github.com/WebAssembly/wabt). Initially, we replace the compiler used in the makefile of SGX programs with the compilers of wllvm and compile them with the -g compile flag.
+We compile the C/C++ SGX programs into WASM files using [wllvm](https://github.com/travitch/whole-program-llvm) and [wabt](https://github.com/WebAssembly/wabt). Initially, we replace the compiler used in the makefile of SGX programs with the compilers of wllvm and compile them with the -g compile flag.
 
 ```shell
 # Install prerequisites
