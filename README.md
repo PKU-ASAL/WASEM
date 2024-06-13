@@ -54,7 +54,7 @@ wasm-ld  --no-entry --export-all xxx.o --allow-undefined
 wasm2wat xxx.wasm -o xxx.wat
 ```
 
-We have successfully compiled several benchmarks, which can be found in the `Benchmarks/` directory.
+We have successfully compiled several benchmarks, which can be found in the `benchmarks/` directory.
 
 ## Analysis
 
@@ -63,14 +63,14 @@ We have successfully compiled several benchmarks, which can be found in the `Ben
 Our tool can be used by executing the `main.py` with the appropriate parameters. Three arguments are required. The first argument is the name of the wasm file to analyze. The second argument is the ECall list of the program, separated by commas (`,`). The third argument, which is optional, is the function list of the wasm file. If a corresponding wat file exists in the same path as the wasm file, the third argument can be omitted. For instance, to analyze the `sgx-dent` program for 12 hours, execute the following command:
 
 ```shell
-python3 main.py -f Benchmarks/dnet.wasm --ecall-list sgx_empty_ecall,sgx_ecall_trainer,sgx_ecall_tester,sgx_ecall_classify --symgx --max-time 43200
+python3 main.py -f benchmarks/dnet.wasm --ecall-list sgx_empty_ecall,sgx_ecall_trainer,sgx_ecall_tester,sgx_ecall_classify --symgx --max-time 43200
 ```
 
 It is worth noting that although we set the `--ecall-list` and `--func-list` manually, they can be automatically obtained using automated tools. However, as this is not the primary focus of this project, we leave it for future work.
 
 ### Script
 
-To facilitate a more convenient analysis of the samples in the `Benchmarks/` directory, we have provided a script. You can analyze benchmarks by executing the script with the name of the program you wish to analyze. For instance, to analyze the `sgx-dent` program, use the following command:
+To facilitate a more convenient analysis of the samples in the `benchmarks/` directory, we have provided a script. You can analyze benchmarks by executing the script with the name of the program you wish to analyze. For instance, to analyze the `sgx-dent` program, use the following command:
 
 ```shell
 ./run.sh sgx-dnet --max-time 43200
