@@ -2,7 +2,7 @@
 
 ![logo](pic/104848503.jfif)
 
-WASEM is a general symbolic execution framework for WebAssembly (WASM) binaries. It serves as the core engine for multiple WASM binary analysis tools (see our ISSTA and CCS paper in the reference section). Our framework processes the WASM file compiled from the source code of C/C++/Rust/Go, performs symbolic execution, and generates detailed vulnerability reports. These reports include the vulnerability type, location, and the corresponding constraints.
+WASEM is a general symbolic execution framework for WebAssembly (WASM) binaries. It serves as the core engine for multiple WASM binary analysis tools and can be used to analyse both normal WASM programs but also WASM files compiled from SGX programs(see our ISSTA and CCS paper in the reference section). Our framework processes the WASM file compiled from the source code of C/C++/Rust/Go, performs symbolic execution, and generates detailed vulnerability reports. These reports include the vulnerability type, location, and the corresponding constraints.
 
 ##  Prerequisites 
 
@@ -60,7 +60,7 @@ We have successfully compiled several benchmarks, which can be found in the `ben
 
 ### Input Arguments
 
-Our tool can be used by executing the `main.py` with the appropriate parameters. Three arguments are required. The first argument is the name of the wasm file to analyze. The second argument is the ECall list of the program, separated by commas (`,`). The third argument, which is optional, is the function list of the wasm file. If a corresponding wat file exists in the same path as the wasm file, the third argument can be omitted. For instance, to analyze the `sgx-dent` program for 12 hours, execute the following command:
+Our tool can be used by executing the `main.py` with the appropriate parameters. Four arguments are required. The first argument is the name of the wasm file to analyze. The second argument is the ECall list of the program, separated by commas (`,`). The third argument, which is optional, is the function list of the wasm file. If a corresponding wat file exists in the same path as the wasm file, the third argument can be omitted. The fourth argument is the mode to run WASEM. If `--symgx` is set, it will be run in SGX mode, or it will be run in normal mode. For instance, to analyze the `sgx-dent` program in SGX mode for 12 hours, execute the following command:
 
 ```shell
 python3 main.py -f benchmarks/dnet.wasm --ecall-list sgx_empty_ecall,sgx_ecall_trainer,sgx_ecall_tester,sgx_ecall_classify --symgx --max-time 43200
@@ -68,7 +68,11 @@ python3 main.py -f benchmarks/dnet.wasm --ecall-list sgx_empty_ecall,sgx_ecall_t
 
 It is worth noting that although we set the `--ecall-list` and `--func-list` manually, they can be automatically obtained using automated tools. However, as this is not the primary focus of this project, we leave it for future work.
 
-### Script
+### Normal Mode
+
+More Description To Do
+
+### SGX Mode
 
 To facilitate a more convenient analysis of the samples in the `benchmarks/` directory, we have provided a script. You can analyze benchmarks by executing the script with the name of the program you wish to analyze. For instance, to analyze the `sgx-dent` program, use the following command:
 
@@ -77,8 +81,6 @@ To facilitate a more convenient analysis of the samples in the `benchmarks/` dir
 ```
 
 Other available programs include `sgxwallet`, `SGXCryptoFile`, `verifiable-election`, `sgx-log`, `sgx-kmeans`, `sgx-reencrypt`, `CryptoEnclave`, `sgx-pwenclave`, `sgx-deep-learning`, `sgx-biniax2`, `sgx-rsa`, `sgx_protect_file` and `SGXSSE`.
-
-### Output
 
 The vulnerability reports will be generated in the directory `log/`. The format of a vulnerability report is as follows:
 
