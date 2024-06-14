@@ -22,6 +22,13 @@ pip install --force-reinstall leb128==1.0.4
 
 To analyze files written in other programming languages, you must generate the corresponding WASM file in your local environment. This section provides brief instructions on how to compile C/C++ SGX programs into WASM.
 
+
+## Normal Mode
+
+More Description To Do
+
+## SGX Mode
+
 ### Compilation
 
 We compile the C/C++ SGX programs into WASM files using [wllvm](https://github.com/travitch/whole-program-llvm) and [wabt](https://github.com/WebAssembly/wabt). Initially, we replace the compiler used in the makefile of SGX programs with the compilers of wllvm and compile them with the -g compile flag.
@@ -57,7 +64,6 @@ wasm2wat xxx.wasm -o xxx.wat
 
 We have successfully compiled several benchmarks, which can be found in the `benchmarks/` directory.
 
-## Analysis
 
 ### Input Arguments
 
@@ -69,12 +75,6 @@ python3 main.py -f benchmarks/dnet.wasm --ecall-list sgx_empty_ecall,sgx_ecall_t
 
 It is worth noting that although we set the `--ecall-list` and `--func-list` manually, they can be automatically obtained using automated tools. However, as this is not the primary focus of this project, we leave it for future work.
 
-### Normal Mode
-
-More Description To Do
-
-### SGX Mode
-
 To facilitate a more convenient analysis of the samples in the `benchmarks/` directory, we have provided a script. You can analyze benchmarks by executing the script with the name of the program you wish to analyze. For instance, to analyze the `sgx-dent` program, use the following command:
 
 ```shell
@@ -82,6 +82,8 @@ To facilitate a more convenient analysis of the samples in the `benchmarks/` dir
 ```
 
 Other available programs include `sgxwallet`, `SGXCryptoFile`, `verifiable-election`, `sgx-log`, `sgx-kmeans`, `sgx-reencrypt`, `CryptoEnclave`, `sgx-pwenclave`, `sgx-deep-learning`, `sgx-biniax2`, `sgx-rsa`, `sgx_protect_file` and `SGXSSE`.
+
+### Output Report
 
 The vulnerability reports will be generated in the directory `log/`. The format of a vulnerability report is as follows:
 
