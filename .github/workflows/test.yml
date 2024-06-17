@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4.5.0
         with:
@@ -42,4 +42,9 @@ jobs:
       - name: Run pytest
         run: |
           export PATH=$(pwd)/wabt-1.0.32/bin:$PATH
-          pytest test/test.py --tb=short --durations=0
+          pytest test/test.py --tb=short --durations=0 --cov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}

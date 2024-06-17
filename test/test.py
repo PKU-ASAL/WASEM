@@ -1,8 +1,5 @@
-import sys
 import pytest
-from os import path
 import subprocess
-import glob
 
 @pytest.mark.parametrize('wasm_name', [
     'sgx-dnet',
@@ -23,4 +20,4 @@ import glob
 
 def test_wasm_can_be_analyzed(wasm_name):
     cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5']
-    subprocess.run(cmd, timeout=40, check=True)
+    subprocess.run(cmd, timeout=45, check=True)
