@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v4.5.0
+        uses: actions/setup-python@v4
         with:
           python-version: '3.7'
           cache: pip
@@ -30,7 +30,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Cache wabt
         id: cache-wabt
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: wabt-1.0.32
           key: wabt

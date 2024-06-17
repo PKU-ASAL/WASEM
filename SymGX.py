@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
-import json
 import os
-import sys
-from datetime import datetime
-
-from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.pathgraph import Graph
-from eunomia.arch.wasm.visualizator import visualize
 from eunomia.arch.wasm.mythread import multi_thread_process
 
 def SymGX(args):
@@ -43,8 +35,5 @@ def SymGX(args):
     else:
         max_time = args.max_time
     print("set time limit: %d seconds" % max_time)
-
-    # import necessary part
-    from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
 
     multi_thread_process(octo_bytecode, namelist, Ecall_list, max_time)

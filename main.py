@@ -8,14 +8,74 @@ from datetime import datetime
 from os import makedirs, path
 
 import sh
-from launch import launch
-from SymGX import SymGX
 
+from seewasm.arch.wasm.configuration import Configuration
 
+def do_symgx(args):
+    from SymGX import SymGX
+    # ecall_list must be specified
+    if not args.ecall_list:
+        print("Error: --symgx requires --ecall-list")
+        exit(1)
+    SymGX(args)
 
-def main():
+def do_normal(args):
+    module_bytecode = args.file.read()
+    # create the corresponding wat file
+    wat_file_path = args.file.name.replace('.wasm', '.wat')
+    if not path.exists(wat_file_path):
+        sh.Command('wasm2wat')([args.file.name, "-o", wat_file_path])
+        print(
+            f"The corresponding wat file is written in: {wat_file_path}",
+            flush=True)
+    # conduct symbolic execution
+    if args.symbolic:
+        Configuration.set_verbose_flag(args.verbose)
+        Configuration.set_entry(args.entry)
+        Configuration.set_visualize(args.visualize)
+        Configuration.set_source_type(args.source_type)
+        Configuration.set_stdin(args.stdin, args.sym_stdin)
+        Configuration.set_sym_files(args.sym_files)
+        Configuration.set_incremental_solving(args.incremental)
+        Configuration.set_elem_index_to_func(wat_file_path)
+
+        command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
+        makedirs(path.dirname(command_file_name), exist_ok=True)
+        with open(command_file_name, 'w') as fp:
+            json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
+
+        # --args and --sym_args can exist simultaneously
+        # their order are fixed, i.e., --args is in front of --sym_args
+        # the file_name is always the argv[0]
+        Configuration.set_args(
+            Configuration.get_file_name(),
+            args.args, args.sym_args)
+
+        # import necessary part
+        from seewasm.arch.wasm.emulator import WasmSSAEmulatorEngine
+        from seewasm.arch.wasm.graph import Graph
+        from seewasm.arch.wasm.visualizator import visualize
+
+        wasmVM = WasmSSAEmulatorEngine(module_bytecode)
+        # run the emulator for SSA
+        Graph.wasmVM = wasmVM
+        Graph.initialize()
+        # draw the ICFG on basic block level, and exit
+        if Configuration.get_visualize():
+            # draw here
+            visualize(Graph)
+
+            print(f"The visualization of ICFG is done.")
+            return
+
+        graph = Graph()
+        graph.traverse()
+    else:
+        pass
+
+def parse():
     parser = argparse.ArgumentParser(
-        description='SeeWasm, a symbolic execution engine for Wasm module')
+        description='WASEM, a general symbolic execution framework for WebAssembly (WASM) binaries ')
 
     inputs = parser.add_argument_group('Input arguments')
     inputs.add_argument('-f', '--file',
@@ -75,28 +135,28 @@ def main():
     symgx.add_argument('--func-list', help='function list string, separated by commas (`,`)')
 
     args = parser.parse_args()
+    return args
 
-    if args.symgx:
-        # ecall_list must be specified
-        if not args.ecall_list:
-            parser.error("--symgx requires --ecall-list")
-            exit(1)
-        SymGX(args)
-    else:
-        launch(args)
-
-if __name__ == '__main__':
+def main():
+    args = parse()
     job_start_time = datetime.now()
     current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"Start to analyze: {current_time_start}", flush=True)
-    #Configuration.set_start_time(current_time_start)
-
+    Configuration.set_file(args.file.name)
+    Configuration.set_start_time(job_start_time.strftime("%Y%m%d%H%M%S"))
     print(f"Running...", flush=True)
-    main()
-    print(f"Finished.", flush=True)
 
+    if args.symgx:
+        do_symgx(args)
+    else:
+        do_normal(args)
+
+    print(f"Finished.", flush=True)
     job_end_time = datetime.now()
     current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"End of analyze: {current_time_end}", flush=True)
     elapsed_time = job_end_time - job_start_time
     print(f"Time elapsed: {elapsed_time}", flush=True)
+
+if __name__ == '__main__':
+    main()

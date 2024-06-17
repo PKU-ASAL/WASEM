@@ -33,8 +33,9 @@ def Init_state(wasmVM, func):
     return wasmVM.init_state(func, param_str)
 
 class myThread(Thread):
-    def __init__(self):
+    def __init__(self, results):
         Thread.__init__(self)
+        self.results = results
 
     def run(self):
         from eunomia.arch.wasm.pathgraph import Graph
@@ -65,6 +66,8 @@ class myThread(Thread):
             else:
                 state_pool_lock.release()
                 print('Thread id : %d gets nothing, now exits.' % t.ident)
+                break
+        self.results.append(0)
 
 def multi_thread_process(octocode, namelist, Ecall_list, max_time):
     global GlobalEcallList
@@ -85,8 +88,9 @@ def multi_thread_process(octocode, namelist, Ecall_list, max_time):
     global alive
     alive = True
     threadlist = []
+    results = []
     for i in range(CoreNum):
-        threadlist.append(myThread())
+        threadlist.append(myThread(results))
 
     for thread in threadlist:
         thread.start()
@@ -101,3 +105,7 @@ def multi_thread_process(octocode, namelist, Ecall_list, max_time):
 
     for thread in threadlist:
         thread.join()
+
+    assert len(results) == CoreNum, "Some threads did not exit properly"
+    for result in results:
+        assert result == 0
