@@ -1,4 +1,4 @@
-# WASEM [![test](https://github.com/PKU-ASAL/WASEM/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/PKU-ASAL/WASEM/actions/workflows/test.yml)
+# WASEM [![test](https://github.com/PKU-ASAL/WASEM/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/PKU-ASAL/WASEM)
 
 ![logo](pic/104848503.jfif)
 
@@ -82,7 +82,7 @@ Finally, as several high-level programming languages can be compiled to Wasm bin
 ### Features
 `--entry` can tell WASEM which function is the entry, from which the symbolic execution performs.
 Note that the `__original_main` is the default entry for all Wasm binaries following WASI standard.
-The toolchain we mentioned in the [previous section](README.md#prerequisites) can generate Wasm binaries following WASI standard.
+The toolchain we mentioned in the [previous section](README.md#Prerequisites) can generate Wasm binaries following WASI standard.
 
 As we mentioned in our paper, the given Wasm will be parsed into ICFG.
 Sometimes visualizing the ICFG is necessary for debugging.
@@ -242,7 +242,7 @@ If you use any of our tools or datasets in your research for publication, please
 
 ## Feedback
 
-If you have any questions or need further clarification, please post on [the issue page]([Issues · PKU-ASAL/WASEM (github.com)](https://github.com/PKU-ASAL/WASEM/issues)), or you can directly email Yuanpeng Wang at [yuanpeng_wang@pku.edu.cn](yuanpeng_wang@pku.edu.cn).
+If you have any questions or need further clarification, please post on the [Issues](https://github.com/PKU-ASAL/WASEM/issues) page, or you can directly email Yuanpeng Wang at [yuanpeng_wang@pku.edu.cn](yuanpeng_wang@pku.edu.cn).
 
 ## Acknowledgements
 

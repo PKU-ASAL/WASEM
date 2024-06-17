@@ -1,4 +1,50 @@
-*.pyc
+# Python-specific files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-env/
+# Virtual environment files
+venv/
+env
+.env
+
+# IDE-specific files
+.vscode/
+пион/
+.idea/
+*.iml
+
+# Package installation files
+pip-log.txt
+pip-debug.log
+
+# Test files
+*.tmp
+*.coverage
+*.log
+/tox/
+
+# Config files
+config.py
+settings.py
+
+# Data files
+/data/
+/tests/data/
+
+# Logs
+log/
+
+# Cache files
+.cache/
+
+# Node modules (if using npm/yarn)
+node_modules/
+
+# Other files
+*.bak
+*.swap
+*.orig
+*.rej
+*.elf
