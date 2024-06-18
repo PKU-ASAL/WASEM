@@ -20,6 +20,8 @@ pip install --upgrade pip wheel
 pip install --force-reinstall leb128==1.0.4
 ```
 
+If you need to visualize the graph (`--visualize`), make sure you have installed `graphviz` on your system. You can use `sudo apt install graphviz` to install.
+
 To analyze files written in other programming languages, you must generate the corresponding WASM file in your local environment. This section provides brief instructions on how to compile C/C++ SGX programs into WASM.
 
 
@@ -106,7 +108,7 @@ If we want to execute a program which does not requrie any extra arguments and i
 python launcher.py -f PATH_TO_WASM_BINARY -s
 ```
 
-The corresponding logging and results of feasible paths will be generated in `./log` folder.
+The corresponding logging and results of feasible paths will be generated in `output` folder.
 
 If compilicated arguments are required. For example, a `base64` program whose `main` is like:
 
@@ -192,7 +194,7 @@ Other available programs include `sgxwallet`, `SGXCryptoFile`, `verifiable-elect
 
 ### Output Report
 
-The vulnerability reports will be generated in the directory `log/`. The format of a vulnerability report is as follows:
+The vulnerability reports will be generated in the directory `output/result/PROGRAM_NAME`. The format of a vulnerability report is as follows:
 
 ```shell
 {

@@ -144,7 +144,7 @@ def str_to_little_endian_int(string):
 
 def write_result(state, exit=False):
     """
-    Write result in ./log/result folder in json format
+    Write result in ./output/result folder in json format
     """
     # if it is existed, and the stderr has no output
     # it means that it is raised by ProcFailTermination
@@ -153,7 +153,7 @@ def write_result(state, exit=False):
     if exit and not state.file_sys[2]['content']:
         return
 
-    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
+    file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
     with open(file_name, 'w') as fp:
@@ -235,14 +235,14 @@ def write_result(state, exit=False):
 
 def write_vulnerabilities(state, vtype):
     """
-    Write result in ./log/result folder in json format
+    Write result in ./output/result folder in json format
     """
     global vulnerability_list
     if (state.current_func_name, state.instr.offset) in vulnerability_list:
         return
     else:
         vulnerability_list.append((state.current_func_name, state.instr.offset))
-    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/bug_state_{datetime.timestamp(datetime.now()):.3f}.json"
+    file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/bug_state_{datetime.timestamp(datetime.now()):.3f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
     with open(file_name, 'w') as fp:

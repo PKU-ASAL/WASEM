@@ -44,7 +44,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 # config the logger
 logging_config = {
-    'filename': f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+    'filename': f'./output/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
     'filemode': 'w+',
     'format': '%(asctime)s | %(levelname)s | %(message)s',
 }
@@ -569,10 +569,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             output_string.append(
                 "------------------------------------------\n")
 
-            with open(f'./log/coverage-function/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'w') as fp:
+            with open(f'./output/coverage-function/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'w') as fp:
                 fp.writelines(output_string)
 
-            with open(f'./log/coverage-instruction/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+            with open(f'./output/coverage-instruction/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
                 fp.write(
                     f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
 

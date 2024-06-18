@@ -34,7 +34,7 @@ sys.setrecursionlimit(4096)
 
 # config the logger
 logging_config = {
-    'filename': f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+    'filename': f'./output/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
     'filemode': 'w+',
     'format': '%(asctime)s | %(levelname)s | %(message)s',
 }
@@ -46,6 +46,12 @@ else:
     logging_config['level'] = logging.WARNING
 logging.basicConfig(**logging_config)
 
+# add console logger (warning level)
+console = logging.StreamHandler()
+console.setLevel(logging.WARNING)
+formatter = logging.Formatter('%(levelname)s: %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 
 # =======================================
 # #         WASM Emulator               #
@@ -345,7 +351,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.debug("got 'return' instruction, now return")
                 break
             if instruction.name == "unreachable":
-                logging.debug("got 'unreachable' instruction, now terminate")
+                logging.warn("got 'unreachable' instruction, now terminate")
                 raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
             for state in states:  # TODO: embarassing parallel

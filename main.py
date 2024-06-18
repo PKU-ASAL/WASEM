@@ -2,24 +2,32 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import json
-import sys
 from datetime import datetime
+import json
 from os import makedirs, path
-
+import resource
 import sh
-
-from seewasm.arch.wasm.configuration import Configuration
+import sys
 
 def do_symgx(args):
+    from eunomia.arch.wasm.configuration import Configuration
+    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S"))
     from SymGX import SymGX
+
+    Configuration.set_file(args.file.name)
+
     # ecall_list must be specified
     if not args.ecall_list:
-        print("Error: --symgx requires --ecall-list")
+        print("Error: --symgx requires --ecall-list", file=sys.stderr)
         exit(1)
     SymGX(args)
 
 def do_normal(args):
+    from seewasm.arch.wasm.configuration import Configuration
+    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S"))
+
+    print(args)
+
     module_bytecode = args.file.read()
     # create the corresponding wat file
     wat_file_path = args.file.name.replace('.wasm', '.wat')
@@ -31,6 +39,7 @@ def do_normal(args):
     # conduct symbolic execution
     if args.symbolic:
         Configuration.set_verbose_flag(args.verbose)
+        Configuration.set_file(args.file.name)
         Configuration.set_entry(args.entry)
         Configuration.set_visualize(args.visualize)
         Configuration.set_source_type(args.source_type)
@@ -39,7 +48,7 @@ def do_normal(args):
         Configuration.set_incremental_solving(args.incremental)
         Configuration.set_elem_index_to_func(wat_file_path)
 
-        command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
+        command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)
         with open(command_file_name, 'w') as fp:
             json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
@@ -54,7 +63,6 @@ def do_normal(args):
         # import necessary part
         from seewasm.arch.wasm.emulator import WasmSSAEmulatorEngine
         from seewasm.arch.wasm.graph import Graph
-        from seewasm.arch.wasm.visualizator import visualize
 
         wasmVM = WasmSSAEmulatorEngine(module_bytecode)
         # run the emulator for SSA
@@ -62,9 +70,10 @@ def do_normal(args):
         Graph.initialize()
         # draw the ICFG on basic block level, and exit
         if Configuration.get_visualize():
+            from seewasm.arch.wasm.visualizator import visualize
             # draw here
-            visualize(Graph)
-
+            graph_path = path.join("output", "visualized_graph", f"{Configuration.get_file_name()}_{Configuration.get_start_time()}.gv")
+            visualize(Graph, graph_path)
             print(f"The visualization of ICFG is done.")
             return
 
@@ -128,6 +137,9 @@ def parse():
     analyze.add_argument(
         '--max-time', action='store', type=int,
         help='maximum time in seconds')
+    analyze.add_argument(
+        '--max-memory', action='store', type=int,
+        help='maximum memory in MB')
 
     symgx = parser.add_argument_group('Symgx')
     symgx.add_argument('--symgx', action='store_true', help='enable the branch of symgx', default=False)
@@ -139,11 +151,14 @@ def parse():
 
 def main():
     args = parse()
+
+    if args.max_memory:
+        resource.setrlimit(resource.RLIMIT_AS, (args.max_memory * 1024 * 1024, args.max_memory * 1024 * 1024))
+        print(f"Memory limit set to {args.max_memory} MB", flush=True)
+
     job_start_time = datetime.now()
     current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"Start to analyze: {current_time_start}", flush=True)
-    Configuration.set_file(args.file.name)
-    Configuration.set_start_time(job_start_time.strftime("%Y%m%d%H%M%S"))
     print(f"Running...", flush=True)
 
     if args.symgx:

@@ -54,6 +54,6 @@ node_modules/
 *.elf
 
 # test files
-test/
-!test/**/*.py
-!test/**/*.wasm
+test/*
+!test/*.py
+!test/*.wasm

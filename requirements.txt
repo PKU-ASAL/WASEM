@@ -8,5 +8,4 @@ pytest-parallel==0.1.1
 pytest-cov==4.0.0
 sh==1.14.2
 z3-solver==4.10.2.0
-wasm==1.2
 wllvm==1.3.1
