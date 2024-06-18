@@ -36,8 +36,12 @@ settings.py
 # Logs
 log/
 
+# Results
+output/
+
 # Cache files
 .cache/
+.pytest_cache/
 
 # Node modules (if using npm/yarn)
 node_modules/
@@ -48,3 +52,8 @@ node_modules/
 *.orig
 *.rej
 *.elf
+
+# test files
+test/
+!test/**/*.py
+!test/**/*.wasm
