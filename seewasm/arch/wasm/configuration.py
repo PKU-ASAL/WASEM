@@ -73,7 +73,7 @@ class Configuration:
 
     @ staticmethod
     def set_algo(algo):
-        pass
+        Configuration._algo = algo
 
     @ staticmethod
     def get_algo():

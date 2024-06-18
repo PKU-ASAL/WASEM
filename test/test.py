@@ -27,7 +27,7 @@ resource.setrlimit(resource.RLIMIT_AS, (4 * 1024 * 1024 * 1024, -1))
 ])
 
 def test_sgx_wasm_can_be_analyzed(wasm_name):
-    cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5']
+    cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5', '--max-memory', '4096']
     subprocess.run(cmd, timeout=60, check=True)
 
 def test_sgx_wasm_can_be_fully_analyzed():
@@ -59,6 +59,49 @@ def test_ecall_list_must_be_specified():
 def test_wasm_can_be_analyzed(wasm_path, entry):
     wasm_path = os.path.join("./test/", wasm_path)
     cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info']
+    if entry != "":
+        cmd.extend(['--entry', entry])
+    subprocess.run(cmd, timeout=30, check=True)
+
+@pytest.mark.parametrize('wasm_path, entry', [
+    ('hello_world.wasm', ''),
+    ('hello_world_go.wasm', '_start'),
+    ('hello_world_rust.wasm', ''),
+    ('test.wasm', ''),
+])
+
+def test_wasm_can_be_analyzed_in_bfs(wasm_path, entry):
+    wasm_path = os.path.join("./test/", wasm_path)
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'bfs']
+    if entry != "":
+        cmd.extend(['--entry', entry])
+    subprocess.run(cmd, timeout=30, check=True)
+
+@pytest.mark.parametrize('wasm_path, entry', [
+    ('hello_world.wasm', ''),
+    ('hello_world_go.wasm', '_start'),
+    ('hello_world_rust.wasm', ''),
+    ('test.wasm', ''),
+])
+
+def test_wasm_can_be_analyzed_in_random(wasm_path, entry):
+    wasm_path = os.path.join("./test/", wasm_path)
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'random']
+    if entry != "":
+        cmd.extend(['--entry', entry])
+    subprocess.run(cmd, timeout=30, check=True)
+
+
+@pytest.mark.parametrize('wasm_path, entry', [
+    ('hello_world.wasm', ''),
+    ('hello_world_go.wasm', '_start'),
+    ('hello_world_rust.wasm', ''),
+    ('test.wasm', ''),
+])
+
+def test_wasm_can_be_analyzed_in_interval(wasm_path, entry):
+    wasm_path = os.path.join("./test/", wasm_path)
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'interval']
     if entry != "":
         cmd.extend(['--entry', entry])
     subprocess.run(cmd, timeout=30, check=True)

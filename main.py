@@ -47,6 +47,7 @@ def do_normal(args):
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
         Configuration.set_elem_index_to_func(wat_file_path)
+        Configuration.set_algo(args.search)
 
         command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)
@@ -134,6 +135,10 @@ def parse():
     analyze.add_argument(
         '-s', '--symbolic', action='store_true',
         help='perform the symbolic execution')
+    analyze.add_argument(
+        '--search', default='dfs', const='dfs', nargs='?',
+        choices=['dfs', 'bfs', 'random', 'interval'],
+        help='set the search algorithm')
     analyze.add_argument(
         '--max-time', action='store', type=int,
         help='maximum time in seconds')
