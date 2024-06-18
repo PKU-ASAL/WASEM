@@ -35,33 +35,3 @@ def format_kind_global(mutability, content_type, current_instruction):
     # leave mutability temporarily
     return [content_type, current_instruction]
 
-
-def format_scan_result(result):
-    def name_to_string(val=13949526960272233840):
-        charmap = ".12345abcdefghijklmnopqrstuvwxyz"
-        result = ['.'] * 13
-        for i in range(12 + 1):
-            c = charmap[val & (0x0f if i == 0 else 0x1f)]
-            result[12 - i] = c
-            val >>= (4 if i == 0 else 5)
-        result = ''.join(result).rstrip('.')
-        return result
-
-    def decode(matchobj):
-        original = int(matchobj.group(0))
-        result = name_to_string(original)
-        return result
-
-    new_result = list()
-
-    for key_functions, constraints in result:
-        new_key_functions = key_functions
-        new_constraints = list()
-        for constraint in constraints:
-            constraint = str(constraint)
-            if 'action ==' in constraint or 'code ==' in constraint:
-                constraint = re.sub(r'[0-9]{10,}', decode, constraint)
-            new_constraints.append(constraint)
-        new_result.append([new_key_functions.copy(), new_constraints.copy()])
-
-    return new_result
