@@ -41,6 +41,7 @@ class WasmDisassembler(Disassembler):
         operand_interpretation = None
 
         if imm_struct is not None:
+            assert not isinstance(imm_struct, int), f"imm_struct is int, most likely encountered unsupported inst.\nname: {name}\nimm_struct: {imm_struct}\npops: {pops} pushes: {pushes}\ndesc: {description}\nopcode_id: {hex(opcode_id)}"
             operand_size, operand, _ = imm_struct.from_raw(
                 None, bytecode_wnd[1:])
             insn = inst_namedtuple(
