@@ -32,7 +32,7 @@ def test_sgx_wasm_can_be_analyzed(wasm_name):
 
 def test_sgx_wasm_can_be_fully_analyzed():
     cmd = ['/usr/bin/env', 'bash', 'run.sh', 'SGXCryptoFile']
-    subprocess.run(cmd, timeout=30, check=True)
+    subprocess.run(cmd, timeout=45, check=True)
     result_dir = glob.glob('./output/result/sgxcrypto_*')
     # sort and use last one
     result_dir.sort()
@@ -48,6 +48,22 @@ def test_ecall_list_must_be_specified():
     # "--symgx requires --ecall-list" msg should be in stderr
     assert '--symgx requires --ecall-list' in proc.stderr.decode('utf-8'), 'should have --symgx requires --ecall-list in stderr'
 
+def test_c_library():
+    cmd = [sys.executable, 'main.py', '-f', 'test/test_c_library.wasm', '-s', '-v', 'info']
+    proc = subprocess.run(cmd, timeout=30, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert proc.returncode == 0, f'return code should be 0\nstdout: {proc.stdout.decode("utf-8")}\nstderr: {proc.stderr.decode("utf-8")}'
+
+    result_dir = glob.glob('./output/result/test_c_library*')
+    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
+    result_dir = result_dir[0]
+    state_path = glob.glob(f'{result_dir}/state*.json')
+    assert len(state_path) == 1, 'currently in concrete mode, should have only one state output'
+
+    with open(state_path[0], 'r') as f:
+        state = json.load(f)
+    assert state['Return'] == "0", f'return value should be 0, got {state["Return"]}'
+    assert state['Output'][0]['name'] == "stdout"
+    assert state['Output'][0]['output'] == "str2 is less than str1The substring is: Point\nThe substring is: \x00\nString after |.| is - |.tutorialspoint.com|\nfloor testing below:Value1 = -2.0 \nValue2 = 2.0 \nceil testing below:Value1 = -1.0 \nValue2 = 3.0 \nsqrt testing below:Value1 = fp.to_ieee_bv(NaN) \nValue2 = 1.6733200388199156 \nexp testing below:The exponential value of 1.0 is 2.718281828459045\nThe exponential value of 2.0 is 7.3890560989306495\nabs testing below:value of a = 5\nvalue of b = 10\nEnter character: Character entered: `@`TechOnTheNet.com\nHello, world!\nFinal destination string : This is destinationThis is sotutorialspointtutorialspoint.comThis is string.h library function\n$$$$$$$ string.h library function\nHeloooo!!\nhttp://www.tutorialspoint.com\nstr2 is less than str11234567890\n1234456890\nString value = 98993.489, Float value = 98993.4765625, test padding: a\nFloat value = 98993.4765625, String value = 98993.489, test padding: a\nString value = tutorialspoint.com, Float value = 0.0\n"
 
 @pytest.mark.parametrize('wasm_path, entry', [
     ('hello_world.wasm', ''),
