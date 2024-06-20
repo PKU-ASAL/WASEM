@@ -197,6 +197,8 @@ OPCODES = [
     Opcode(0xbe, 'f32.reinterpret/i32',   None,                     0),
     Opcode(0xbf, 'f64.reinterpret/i64',   None,                     0),
     
+    Opcode(0xc0, 'i32.extend_s/i8',       None,                     0),
+
     Opcode(0xfc0a, 'memory.copy',         ExtMemoryImm(),           0),
     Opcode(0xfc0b, 'memory.fill',         ExtMemoryImm(),           0),
 ]

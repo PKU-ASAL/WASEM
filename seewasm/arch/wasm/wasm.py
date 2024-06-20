@@ -235,6 +235,8 @@ _table = {
     0xbd: ('i64.reinterpret/f64', None, 1, 1, 'reinterpret the bits of a 64-bit float as a 64-bit integer'),
     0xbe: ('f32.reinterpret/i32', None, 1, 1, 'reinterpret the bits of a 32-bit integer as a 32-bit float'),
     0xbf: ('f64.reinterpret/i64', None, 1, 1, 'reinterpret the bits of a 64-bit integer as a 64-bit float'),
+    0xc0: ('i32.extend_s/i8', None, 1, 1, 'extend a signed 8-bit integer to a 32-bit integer'),
+
   0xfc0a: ('memory.copy', ExtMemoryImm(), 3, 1, 'copy data from a source memory region to destination region'),
   # Unimplemented
   0xfc0b: ('memory.fill', ExtMemoryImm(), 3, 1, 'set all bytes in a memory region to a given byte'),
