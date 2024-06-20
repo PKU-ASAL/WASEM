@@ -1,4 +1,3 @@
-wasm==1.2
 pyelftools==0.27
 graphviz==0.18
 leb128==1.0.4
