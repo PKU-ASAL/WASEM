@@ -308,6 +308,7 @@ class CPredefinedFunction:
             the_string = C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state).encode()
             # the '\n' is added according to semantic of puts
+            the_string += b'\n'
             logging.info(
                 f"\tOutput a puts string: {the_string}")
             state.file_sys[1]["content"] += list(the_string)
@@ -421,6 +422,22 @@ class CPredefinedFunction:
 
             # maybe we can directly return a false, ref: https://github.com/coreutils/gnulib/blob/master/lib/hard-locale.h
             state.symbolic_stack.append(BitVecVal(0, 32))
+        elif self.name == 'strstr':
+            needle, haystack = _extract_params(param_str, state)
+            logging.info(f"\tstrstr, haystack: {haystack}, needle: {needle}")
+            # find the needle in the haystack
+            haystack_str = C_extract_string_by_mem_pointer(
+                haystack, data_section, state)
+            needle_str = C_extract_string_by_mem_pointer(
+                needle, data_section, state)
+            logging.info(
+                f"\t\thaystack_str: {haystack_str}, needle_str: {needle_str}")
+            if needle_str in haystack_str:
+                ret = haystack_str.index(needle_str) + haystack
+            else:
+                ret = 0
+            logging.info(f"\tstrstr, return: {ret}")
+            state.symbolic_stack.append(BitVecVal(ret, 32))
         # elif self.name == 'rpl_fclose':
         #     stream_ptr, = _extract_params(param_str, state)
         #     logging.info(f"\trpl_fclose, stream_ptr: {stream_ptr}")

@@ -11,7 +11,7 @@ MODELED_FUNCS = {
     {'__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
      'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
      'system', 'emscripten_resize_heap', 'fopen', 'vfprintf',
-     'open', 'exit', 'setlocale', 'hard_locale'},
+     'open', 'exit', 'setlocale', 'hard_locale', 'strstr'},
     'go': {'fmt.Scanf', 'fmt.Printf'},
     'rust': {},
     'wasi':
