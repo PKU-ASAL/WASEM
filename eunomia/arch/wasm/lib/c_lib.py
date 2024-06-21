@@ -1,14 +1,15 @@
 import logging
 import math
 
-from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.dwarfParser import (decode_vararg,
+from seewasm.arch.wasm.configuration import Configuration
+from seewasm.arch.wasm.dwarfParser import (decode_vararg,
+                                           decode_var_type,
                                            get_func_index_from_state,
                                            get_source_location)
-from eunomia.arch.wasm.exceptions import (ProcFailTermination,
+from seewasm.arch.wasm.exceptions import (ProcFailTermination,
                                           UnsupportExternalFuncError)
-from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, FILE_BASE_ADDR,
+from seewasm.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
+from seewasm.arch.wasm.utils import (C_TYPE_TO_LENGTH, FILE_BASE_ADDR,
                                      bin_to_float, calc_memory_align,
                                      getConcreteBitVec, int_to_bytes,
                                      parse_printf_formatting,
@@ -49,8 +50,8 @@ class CPredefinedFunction:
                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
 
             if is_bv(middle_p):
-                if cur_pattern[-1] in {'f', 'd', 'u', 'x'}:
-                    parsed_part = str(middle_p)
+                if cur_pattern[-1] in {'f', 'd', 'u', 'x', 'c'}:
+                    parsed_part = str(simplify(middle_p))
                 else:
                     exit(
                         f"\tencounter a symbolic pointer ({middle_p}) in printf, with pattern {cur_pattern}")
@@ -182,8 +183,8 @@ class CPredefinedFunction:
             # get addr of vararg 0.
             addr = decode_vararg(state, param_p, 0)
 
-            # TODO disable dwarf temporarily
-            # var_type, var_size = decode_var_type(analyzer, state, addr)
+            # parse dwarf information
+            var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state)
@@ -306,6 +307,7 @@ class CPredefinedFunction:
             the_string = C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state).encode()
             # the '\n' is added according to semantic of puts
+            the_string += b'\n'
             logging.info(
                 f"\tOutput a puts string: {the_string}")
             state.file_sys[1]["content"] += list(the_string)
@@ -419,6 +421,22 @@ class CPredefinedFunction:
 
             # maybe we can directly return a false, ref: https://github.com/coreutils/gnulib/blob/master/lib/hard-locale.h
             state.symbolic_stack.append(BitVecVal(0, 32))
+        elif self.name == 'strstr':
+            needle, haystack = _extract_params(param_str, state)
+            logging.info(f"\tstrstr, haystack: {haystack}, needle: {needle}")
+            # find the needle in the haystack
+            haystack_str = C_extract_string_by_mem_pointer(
+                haystack, data_section, state)
+            needle_str = C_extract_string_by_mem_pointer(
+                needle, data_section, state)
+            logging.info(
+                f"\t\thaystack_str: {haystack_str}, needle_str: {needle_str}")
+            if needle_str in haystack_str:
+                ret = haystack_str.index(needle_str) + haystack
+            else:
+                ret = 0
+            logging.info(f"\tstrstr, return: {ret}")
+            state.symbolic_stack.append(BitVecVal(ret, 32))
         # elif self.name == 'rpl_fclose':
         #     stream_ptr, = _extract_params(param_str, state)
         #     logging.info(f"\trpl_fclose, stream_ptr: {stream_ptr}")

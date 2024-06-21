@@ -9,8 +9,8 @@ from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
                                           ProcSuccessTermination,
                                           UnsupportInstructionError)
-from seewasm.arch.wasm.lib.c_lib import CPredefinedFunction
-from seewasm.arch.wasm.lib.go_lib import GoPredefinedFunction
+from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction, C_extract_string_by_mem_pointer
+from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.lib.wasi import WASIImportFunction
 from seewasm.arch.wasm.utils import (log_in_out, one_time_query_cache,
