@@ -572,9 +572,10 @@ class WasmModuleAnalyzer(object):
             debug_line_sec=data[debug_line_sec_name],
             debug_pubtypes_sec=data[debug_pubtypes_name],
             debug_pubnames_sec=data[debug_pubnames_name],
-            # debug_addr_sec=data[debug_addr_name],
-            # debug_str_offsets_sec=data[debug_str_offsets_name],
+            debug_addr_sec= data[debug_addr_name] if debug_addr_name in data else None, 
+            debug_str_offsets_sec=data[debug_str_offsets_name] if debug_str_offsets_name in data else None,
         )
+
 
     def is_compiled_with_emscripten(self):
         matching_list = self.get_emscripten_calls()

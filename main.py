@@ -83,7 +83,7 @@ def main():
             exit(1)
         SymGX(args)
     else:
-        launch(args)
+        launch(args, parser)
 
 if __name__ == '__main__':
     job_start_time = datetime.now()

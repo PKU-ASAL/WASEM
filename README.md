@@ -103,7 +103,7 @@ It will enable the symbolic execution analysis on the given Wasm binary.
 If we want to execute a program which does not requrie any extra arguments and input, the command should be:
 
 ```shell
-python launcher.py -f PATH_TO_WASM_BINARY -s
+python main.py -f PATH_TO_WASM_BINARY -s
 ```
 
 The corresponding logging and results of feasible paths will be generated in `./log` folder.
@@ -130,7 +130,7 @@ We can see that the `base64` not only requires a two bytes arguments, but also n
 Thus, the command to analyze the `base64` is like:
 
 ```shell
-python launcher.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10 -v info
+python main.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10 -v info
 ```
 
 
