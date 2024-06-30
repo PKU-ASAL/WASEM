@@ -6,6 +6,11 @@ import collections
 import logging
 import struct as pystruct
 
+try:
+    from collections import Callable
+except ImportError:
+    # for Python 3.10+
+    from collections.abc import Callable
 
 logger = logging.getLogger()
 
@@ -261,7 +266,7 @@ class StructureMeta(type):
         for cur_field_name, cur_field in list(cls_dict.items()):
             # Is callable, property, private or magic? We don't touch those.
             if (
-                isinstance(cur_field, collections.Callable) or
+                isinstance(cur_field, Callable) or
                 isinstance(cur_field, property) or
                 cur_field_name.startswith('_')
             ):
