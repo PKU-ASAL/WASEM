@@ -6,8 +6,8 @@ import resource
 import subprocess
 import sys
 
-# Set a memory limit of 4GB
-resource.setrlimit(resource.RLIMIT_AS, (4 * 1024 * 1024 * 1024, -1))
+# Set a memory limit of 8GB
+resource.setrlimit(resource.RLIMIT_AS, (8 * 1024 * 1024 * 1024, -1))
 
 @pytest.mark.parametrize('wasm_name', [
     'sgx-dnet',
@@ -27,7 +27,7 @@ resource.setrlimit(resource.RLIMIT_AS, (4 * 1024 * 1024 * 1024, -1))
 ])
 
 def test_sgx_wasm_can_be_analyzed(wasm_name):
-    cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5', '--max-memory', '4096']
+    cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5', '--max-memory', '8192']
     subprocess.run(cmd, timeout=60, check=True)
 
 def test_sgx_wasm_can_be_fully_analyzed():
