@@ -103,7 +103,7 @@ It will enable the symbolic execution analysis on the given Wasm binary.
 If we want to execute a program which does not requrie any extra arguments and input, the command should be:
 
 ```shell
-python main.py -f PATH_TO_WASM_BINARY -s
+python main.py -f test_files/hello_world.wasm -s
 ```
 
 The corresponding logging and results of feasible paths will be generated in `./log` folder.
