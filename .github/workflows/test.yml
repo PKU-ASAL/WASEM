@@ -5,6 +5,7 @@ on:
     paths:
       - '**.py'
       - ".github/workflows/*.yml"
+      - "requirements.txt"
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
