@@ -229,7 +229,7 @@ class Graph:
                 dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
 
                 end_ins = WasmInstruction(
-                    1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
+                    1, 1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
                     offset=dummy_end_block_offset,
                     nature_offset=dummy_end_block_nature_offset)
                 end_ins.cur_bb = dummy_end.name
@@ -408,7 +408,7 @@ class Graph:
     @classmethod 
     def dfs_producer(cls, queue):
         while len(queue) != 0:
-            yield queue.pop()   
+            yield queue.pop()
     
     @classmethod
     def bfs_producer(cls, queue):
@@ -435,12 +435,14 @@ class Graph:
             list(VMstate): A list of states
         """
         # func_index_name is like $func16
-        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func)
+        entry_signature = cls.wasmVM.get_signature(func)
+        func_index_name, param_str, _, _ = entry_signature
         if func not in cls.func_to_bbs:
             func = func_index_name
 
         if state is None:
             state = cls.wasmVM.init_state(func, param_str)
+            Configuration.set_entry_signature(entry_signature)
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -487,7 +489,7 @@ class Graph:
         #     if len(intervals) == ninterval:
         #         break
         #     ninterval = len(intervals)
-        #     no_cycle_nodes = {}            
+        #     no_cycle_nodes = {}
         #     c = 0
         #     for h in intervals:
         #         if not cls.has_cycle(h, g, intervals[h], set()):
@@ -620,9 +622,11 @@ class Graph:
             except ProcSuccessTermination:
                 # end of path
                 return False, state
-            except ProcFailTermination:
+            except ProcFailTermination as exit_code:
                 # trigger exit()
-                write_result(state[0], exit=True)
+                write_result(state[0], exit_code=exit_code)
+                # remove terminated state (written out)
+                state = state[1:]
                 return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
@@ -785,7 +789,7 @@ class Graph:
         if len(cycle1) != len(cycle2):
             return False
             
-        if  cycle2.count(cycle1[0]) == 0:
+        if cycle2.count(cycle1[0]) == 0:
             return False
             
         cycle2_idx_offset = cycle2.index(cycle1[0])
@@ -822,78 +826,6 @@ class Graph:
 
         find_cycles_dfs(bb, bb, [], set(), cycles)
 
-    # @ classmethod
-    # def algo_bfs(cls, entry, state):
-    #     que = Queue()
-    #     que._put((entry, [state]))
-    #     final_states = defaultdict(list)
-    #     # icfg_cycles = set()
-    #     # vis_start_bb = set()
-
-    #     # cls.find_cycles(entry, icfg_cycles)
-    #     # vis_start_bb.add(entry)
-    #     # print(icfg_cycles)
-
-    #     def producer():
-    #         while not que.empty():
-    #             yield que._get()
-        
-    #     def consumer(item):
-    #         (current_bb, current_states) = item
-    #         succs_list = cls.bbs_graph[current_bb].items()
-    #         halt_flag = False
-    #         try:
-    #             emul_states = cls.wasmVM.emulate_basic_block(
-    #                 current_states, cls.bb_to_instructions[current_bb])
-    #         except ProcSuccessTermination:
-    #             return False, current_states
-    #         except ProcFailTermination:
-    #             write_result(state[0], exit=True)
-    #             return False, current_states
-    #         # Because of the existence of dummy block, the len(succs_list) of the exit is 0
-    #         if len(succs_list) == 0:
-    #             return False, emul_states
-            
-    #         avail_br = {}
-    #         for edge_type, next_block in succs_list:
-    #             # if next_block not in vis_start_bb:
-    #             #     vis_start_bb.add(next_block)
-    #             #     cls.find_cycles(next_block, icfg_cycles)
-    #             valid_states = list(
-    #                 filter(
-    #                     lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
-    #             if len(valid_states) > 0:
-    #                 avail_br[(edge_type, next_block)] = valid_states
-            
-    #         for valid_states in avail_br.values():
-    #             for s in valid_states:
-    #                 s.current_bb_name = ''
-    #                 s.edge_type = ''
-    #                 s.call_indirect_callee = ''
-            
-    #         for br in avail_br:
-    #             (_, next_block), valid_states = br, avail_br[br]
-    #             que._put((next_block, valid_states))
-            
-    #         return halt_flag, []
-
-    #     for item in producer():
-    #         halt_flag, emul_states = consumer(item)
-
-    #         for item in emul_states:
-    #             # only the block that locates at the end of the entry function
-    #             # can be regarded as end of path
-    #             if readable_internal_func_name(
-    #                     Configuration.get_func_index_to_func_name(),
-    #                     item.current_func_name) == Configuration.get_entry():
-    #                 write_result(item)
-
-    #         final_states['return'].extend(emul_states)
-    #         if halt_flag:
-    #             break
-    #     return final_states
-            
-
     @ classmethod
     def algo_traverse(cls, entry, state, producer):
         que = []
@@ -914,10 +846,11 @@ class Graph:
                 emul_states = cls.wasmVM.emulate_basic_block(
                     current_states, cls.bb_to_instructions[current_bb])
             except ProcSuccessTermination:
-                write_result(current_states[0], exit=True)
                 return False, current_states
-            except ProcFailTermination:
-                write_result(current_states[0], exit=True)
+            except ProcFailTermination as exit_code:
+                write_result(current_states[0], exit_code=exit_code)
+                # remove terminated state (written out)
+                current_states = current_states[1:]
                 return False, current_states
             # Because of the existence of dummy block, the len(succs_list) of the exit is 0
             if len(succs_list) == 0:

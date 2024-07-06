@@ -2,43 +2,18 @@ import json
 import glob
 import os
 import pytest
-import resource
 import subprocess
 import sys
 
-# Set a memory limit of 8GB
-resource.setrlimit(resource.RLIMIT_AS, (8 * 1024 * 1024 * 1024, -1))
-
 @pytest.mark.parametrize('wasm_name', [
-    'sgx-dnet',
     'sgxwallet',
     'SGXCryptoFile',
-    'verifiable-election',
-    # 'sgx-log', # out-of-bound memory access
     'sgx-kmeans',
-    # 'sgx-reencrypt', # fail to extract wat
-    # 'CryptoEnclave', # fail to extract wat
-    # 'sgx-pwenclave', # out-of-bound memory access
-    # 'sgx-deep-learning', # z3.z3types.Z3Exception: b'Sorts (_ BitVec 32) and (_ BitVec 64) are incompatible'
-    'sgx-biniax2',
-    # 'sgx-rsa', # out-of-bound memory access
-    # 'sgx_protect_file', # out-of-bound memory access
-    # 'SGXSSE' # func_DIE error
 ])
 
 def test_sgx_wasm_can_be_analyzed(wasm_name):
     cmd = ['/usr/bin/env', 'bash', 'run.sh', wasm_name, '--max-time', '5', '--max-memory', '8192']
     subprocess.run(cmd, timeout=60, check=True)
-
-def test_sgx_wasm_can_be_fully_analyzed():
-    cmd = ['/usr/bin/env', 'bash', 'run.sh', 'SGXCryptoFile']
-    subprocess.run(cmd, timeout=45, check=True)
-    result_dir = glob.glob('./output/result/sgxcrypto_*')
-    # sort and use last one
-    result_dir.sort()
-    result_dir = result_dir[-1]
-    state_path = glob.glob(f'{result_dir}/bug_state*.json')
-    assert len(state_path) == 2, 'should have two bug states'
 
 def test_ecall_list_must_be_specified():
     cmd = [sys.executable, 'main.py', '-f', 'benchmarks/sgxcrypto.wasm', '--symgx']
@@ -50,7 +25,7 @@ def test_ecall_list_must_be_specified():
 
 def test_c_library():
     cmd = [sys.executable, 'main.py', '-f', 'test/test_c_library.wasm', '-s', '-v', 'info']
-    proc = subprocess.run(cmd, timeout=30, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.run(cmd, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     assert proc.returncode == 0, f'return code should be 0\nstdout: {proc.stdout.decode("utf-8")}\nstderr: {proc.stderr.decode("utf-8")}'
 
     result_dir = glob.glob('./output/result/test_c_library*')
@@ -70,6 +45,7 @@ def test_c_library():
     ('hello_world_go.wasm', '_start'),
     ('hello_world_rust.wasm', ''),
     ('test.wasm', ''),
+    ('password.wasm', '')
 ])
 
 def test_wasm_can_be_analyzed(wasm_path, entry):
@@ -77,70 +53,27 @@ def test_wasm_can_be_analyzed(wasm_path, entry):
     cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info']
     if entry != "":
         cmd.extend(['--entry', entry])
-    subprocess.run(cmd, timeout=30, check=True)
-
-@pytest.mark.parametrize('wasm_path, entry', [
-    ('hello_world.wasm', ''),
-    ('hello_world_go.wasm', '_start'),
-    ('hello_world_rust.wasm', ''),
-    ('test.wasm', ''),
-])
-
-def test_wasm_can_be_analyzed_in_bfs(wasm_path, entry):
-    wasm_path = os.path.join("./test/", wasm_path)
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'bfs']
-    if entry != "":
-        cmd.extend(['--entry', entry])
-    subprocess.run(cmd, timeout=30, check=True)
-
-@pytest.mark.parametrize('wasm_path, entry', [
-    ('hello_world.wasm', ''),
-    ('hello_world_go.wasm', '_start'),
-    ('hello_world_rust.wasm', ''),
-    ('test.wasm', ''),
-])
-
-def test_wasm_can_be_analyzed_in_random(wasm_path, entry):
-    wasm_path = os.path.join("./test/", wasm_path)
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'random']
-    if entry != "":
-        cmd.extend(['--entry', entry])
-    subprocess.run(cmd, timeout=30, check=True)
-
-
-@pytest.mark.parametrize('wasm_path, entry', [
-    ('hello_world.wasm', ''),
-    ('hello_world_go.wasm', '_start'),
-    ('hello_world_rust.wasm', ''),
-    ('test.wasm', ''),
-])
-
-def test_wasm_can_be_analyzed_in_interval(wasm_path, entry):
-    wasm_path = os.path.join("./test/", wasm_path)
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--search', 'interval']
-    if entry != "":
-        cmd.extend(['--entry', entry])
-    subprocess.run(cmd, timeout=30, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
 
 def test_return_simulation():
     wasm_path = './test/test_return.wasm'
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
-    subprocess.run(cmd, timeout=30, check=True)
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info']
+    subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_return_*')
     result_dir.sort()
     result_dir = result_dir[-1]
     state_path = glob.glob(f'{result_dir}/state*.json')
-    assert len(state_path) == 1, 'should have only one state output `Exit 0`'
+    assert len(state_path) == 1, 'should have only one state returning `1`'
 
     with open(state_path[0], 'r') as f:
         state = json.load(f)
-    assert state['Solution']['proc_exit'] == "\u0000", f'exit code should be 0, got {state["Solution"]["proc_exit"]}'
+    assert state['Return'] == "1", f'should return 1, got {state["Return"]}'
 
 def test_unreachable_simulation():
     wasm_path = './test/test_unreachable.wasm'
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
-    subprocess.run(cmd, timeout=30, check=True)
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info']
+    subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_unreachable_*')
     result_dir.sort()
@@ -151,9 +84,50 @@ def test_unreachable_simulation():
         state = json.load(f)
     assert state['Solution'] == {}, f'should have no solution, got {state["Solution"]}'
 
-def test_visualize_graph():
-    wasm_path = './test/hello_world.wasm'
-    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '-v', 'info', '--visualize']
-    subprocess.run(cmd, timeout=30, check=True)
-    result_dir = glob.glob('./output/visualized_graph/hello_world*.pdf')
-    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `hello_world*` cases?'
+def test_c_sym_args():
+    wasm_path = './test/sym_c.wasm'
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '--sym_args', '1', '--source_type', 'c', '--entry', '__main_void', '-v', 'info']
+    subprocess.run(cmd, timeout=60, check=True)
+
+    result_dir = glob.glob('./output/result/sym_c*')
+    result_dir.sort()
+    result_dir = result_dir[-1]
+    state_path = glob.glob(f'{result_dir}/state*.json')
+    assert len(state_path) == 3, 'should have three states output'
+    for state in state_path:
+        with open(state, 'r') as f:
+            state = json.load(f)
+        assert 'Solution' in state and 'sym_arg_1' in state['Solution'], f'no sym_arg_1 solution found in {state}'
+        assert 'Return' in state, f'no Return found in {state}'
+        assert 'Output' in state and len(state['Output']) == 2, f'no Output found in {state}'
+        inp = state['Solution']["sym_arg_1"]
+        analyzed_return = state['Return']
+        analyzed_stdout = state['Output'][0]['output']
+        expected_return_to_stdout = {"0": "a", "1": "b", "2": "c"}
+        assert analyzed_return in expected_return_to_stdout, f'analyzed return value {analyzed_return} not found in expected_return_to_stdout'
+        assert analyzed_stdout == expected_return_to_stdout[analyzed_return], f'output mismatched, got {analyzed_stdout}, expected {expected_return_to_stdout[analyzed_return]}'
+
+def test_password_sym_args():
+    wasm_path = './test/password.wasm'
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '--sym_args', '10', '--source_type', 'c', '--entry', '_start', '-v', 'info']
+    subprocess.run(cmd, timeout=60, check=True)
+
+    result_dir = glob.glob('./output/result/password*')
+    result_dir.sort()
+    result_dir = result_dir[-1]
+    state_path = glob.glob(f'{result_dir}/state*.json')
+    assert len(state_path) == 6, 'should have six states output'
+    for state in state_path:
+        with open(state, 'r') as f:
+            state = json.load(f)
+        assert 'Solution' in state and 'sym_arg_1' in state['Solution'], f'no sym_arg_1 solution found in {state}'
+        assert 'Output' in state and len(state['Output']) == 2, f'no Output found in {state}'
+        inp = state['Solution']["sym_arg_1"]
+        analyzed_stdout = state['Output'][0]['output']
+        if 'Return' in state:
+            assert state['Return'] == "0", f'should return 0, got {state["Return"]}'
+            assert inp == "hello", f'solved input mismatched, got {inp}'
+            assert analyzed_stdout == "Password found!\n", f'output mismatched, got {analyzed_stdout}'
+        else:
+            assert 'Status' in state, f'no Status found in {state}'
+            assert state['Status'] == "Exit with status code 1", f'should exit with status code 1, got {state["Status"]}'

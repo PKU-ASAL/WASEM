@@ -38,6 +38,8 @@ log/
 
 # Results
 output/
+**/debug
+**/rust/**/target
 
 # Cache files
 .cache/

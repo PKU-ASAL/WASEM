@@ -12,7 +12,7 @@ from seewasm.arch.wasm.analyzer import WasmModuleAnalyzer
 from seewasm.arch.wasm.cfg import WasmCFG
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
-                                          UnsupportInstructionError)
+                                          UnsupportGlobalTypeError)
 from seewasm.arch.wasm.instructions import (ArithmeticInstructions,
                                             BitwiseInstructions,
                                             ConstantInstructions,
@@ -68,7 +68,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         if Configuration.get_entry() not in Configuration.get_func_index_to_func_name().values():
             exit(
-                f"Your designated entry: {Configuration.get_entry()} does not exist.\nPlease assign another by '--entry'")
+                f"Your designated entry: {Configuration.get_entry()} does not exist.\nThere are functions: {list(Configuration.get_func_index_to_func_name().values())}\nPlease assign one of them by '--entry'")
 
         # build call graph
         self.cfg.build_call_graph(self.ana)
@@ -156,7 +156,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def split_bbs(self):
         """
-        Split basic blocks by call and call_indirect instructions
+        Split basic blocks by return, call and call_indirect instructions
         """
         # reinit
         self.cfg.basicblocks = []
@@ -174,8 +174,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 _, func_index, _ = bb.name.split('_')
                 for ins_i, instruction in enumerate(bb.instructions):
-                    # we should split the basic block after these two instructions, if they are not the last instruction
-                    if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
+                    # we should split the basic block after these instructions, if they are not the last instruction
+                    if (instruction.name == 'return' or instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
                         # if the callee is imported, don't need to split the bb
                         if instruction.name == 'call':
                             callee_index = int(
@@ -197,7 +197,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         new_bb.instructions = second_part_ins
                         new_bb.start_offset = next_ins.offset
                         new_bb.start_instr = next_ins
-                        new_bb.name = f"block_{func_index}_{hex(new_bb.start_offset)[2:]}"
+                        new_bb.name = f"splitblock_{func_index}_{hex(new_bb.start_offset)[2:]}"
                         new_bb.end_instr = second_part_ins[-1]
                         new_bb.end_offset = new_bb.end_instr.offset_end
 
@@ -212,6 +212,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                                 e.node_from = new_bb.name
                                 tmp_edge_map[new_bb.name].append(e)
 
+                        # no new edge for return
+                        if instruction.name == 'return':
+                            break
                         # append the new basic block, add a new edge
                         func_basic_blocks.append(new_bb)
                         new_edge = Edge(bb.name, new_bb.name, EDGE_FALLTHROUGH)
@@ -347,11 +350,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instructions (list(Instruction)): A list of instruction objects
         """
         for instruction in instructions:
-            if instruction.name == "return":
-                logging.debug("got 'return' instruction, now return")
-                break
             if instruction.name == "unreachable":
-                logging.warn("got 'unreachable' instruction, now terminate")
+                stderr_msg = "got 'unreachable' instruction, now terminate\n"
+                states[0].file_sys[2]['content'] += [ord(i) for i in stderr_msg]
                 raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
             for state in states:  # TODO: embarassing parallel

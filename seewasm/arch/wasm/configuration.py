@@ -20,9 +20,9 @@ class Configuration:
     The static class that maintain the user's input option
     """
     _source_type = 'c'              # the original source file's type
-    # _algo = 'interval'              # the traverse algorithm, default is interval
+    _algo = 'dfs'                   # the traverse algorithm, default is dfs
     # _algo = 'bfs'
-    _algo = 'dfs'
+    # _algo = 'interval'
     # _algo = 'random'
     _symbol_globals = False         # init the global with the declaration in global sections
     _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed
@@ -37,6 +37,7 @@ class Configuration:
     _start_time = ''
     # the entry function
     _entry_func = ''
+    _entry_func_signature = ''
     # the mapping of func index to func name
     _func_index_to_func_name = {}
     # if enable the instruction-level coverage calculation
@@ -155,6 +156,14 @@ class Configuration:
     @ staticmethod
     def set_entry(entry_func):
         Configuration._entry_func = entry_func[0]
+    
+    @ staticmethod
+    def get_entry_signature():
+        return Configuration._entry_func_signature
+
+    @ staticmethod
+    def set_entry_signature(entry_func_signature):
+        Configuration._entry_func_signature = entry_func_signature
 
     @ staticmethod
     def get_func_index_to_func_name():

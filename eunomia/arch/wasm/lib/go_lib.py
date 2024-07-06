@@ -23,6 +23,17 @@ _values = {
     5: BitVec("global", 32),
     6: BitVec("global.Go", 32)}  # module the memory map in wasm_exec.js
 
+# used for vulnerability detection
+PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
+                   'runtime.lookupPanic': 'index out of range',
+                   'runtime.slicePanic': 'slice out of range',
+                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
+                   'runtime.divideByZeroPanic': 'divide by zero',
+                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
+                   'runtime.chanMakePanic': 'new channel is too big',
+                   'runtime.negativeShiftPanic': 'negative shift',
+                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
+
 
 def calculateHeapAddresses(state, data_section):
     val_81328 = simplify(
@@ -133,7 +144,7 @@ class GoPredefinedFunction:
                     # i8* @runtime.alloc(i32 %size, i8* %layout, i8* %context, i8* %parentHandle)
                     alloc_size = len(write_bytes)
                     inst_call = WasmInstruction(
-                        0x10, 'call', None, None, b'\x10', 0, 0,
+                        0x10, 1, 'call', None, None, b'\x10', 0, 0,
                         'call a function', 'call ' + str(runtime_alloc_ind),
                         -1)
                     arguments = [BitVecVal(0, 32) for i in range(3)]
@@ -218,6 +229,7 @@ class GoPredefinedFunction:
             out_bytes += format_str[parsed_ind:].encode()
             logging.info(f"fmt.printf: {repr(format_str)}")
             logging.info(f"{out_bytes}")
+            state.file_sys[1]["content"] += list(out_bytes)
             store32(pret, len(out_bytes))
             store32(pret + 4, 0)
             manually_constructed = True
@@ -346,6 +358,7 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.putchar':
             ch = param_list[0]
             print(chr(ch.as_long()), end='')
+            state.file_sys[1]["content"] += [ch.as_long()]
         else:
             print(param_list)
 

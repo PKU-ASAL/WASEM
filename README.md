@@ -7,7 +7,7 @@
 
 ##  Prerequisites 
 
-To run WASEM, install the necessary Python libraries as follows:
+To run WASEM, ensure you have Python 3.7 or a later version installed. Then, install the required Python libraries by executing the following command:
 
 ```shell
 python3 -m pip install -r requirements.txt
@@ -20,19 +20,29 @@ pip install --upgrade pip wheel
 pip install --force-reinstall leb128==1.0.4
 ```
 
-If you need to visualize the graph (`--visualize`), make sure you have installed `graphviz` on your system. You can use `sudo apt install graphviz` to install.
+To verify everything is set up correctly, run the following command:
 
-To analyze files written in other programming languages, you must generate the corresponding WASM file in your local environment. This section provides brief instructions on how to compile C/C++ SGX programs into WASM.
+```shell
+python3 -m pytest test.py -vv
+```
 
+This command traverses the `./test` folder and performs symbolic execution on all Wasm binaries.
+If successful, a success message will be displayed, typically **after several seconds**.
+
+Sample Wasm binaries, including "Hello World" in C, Go, and Rust, are provided in the folder. 
+These can be compiled from their respective source languages; the compilation processes are detailed in [WASI tutorial](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi) (C and Rust), and [WASI "Hello World" example](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html) (Go).
+
+For Rust and C++ project, you can use `wasm-tools` to demangle symbol names in the `name` section. Install with `cargo install wasm-tools`. Confirm by `wasm-tools --version`. Details can be found at [Wasm Tools](https://github.com/bytecodealliance/wasm-tools).
 
 ## Normal Mode
 
-In this section, we would show how to use WASEM to analyze normal Wasm file.
+This section demonstrates how to use WASEM to analyze normal Wasm file.
 
 ### Options
 All valid options are shown in below:
+
 ```shell
-WASEM, a symbolic execution engine for Wasm module
+WASEM, a general symbolic execution framework for WebAssembly (WASM) binaries
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -60,57 +70,82 @@ Features:
 
 Analyze:
   -s, --symbolic        perform the symbolic execution
+  --search [{dfs,bfs,random,interval}]
+                        set the search algorithm
 ```
 
 We will detail these options according to their functionalities.
 
 ### Input Arguments
-According to values given to input arguments, WASEM can deassemble the target binary and construct valid inputs.
+WASEM can deassemble the target binary and construct valid inputs based on the values of the input arguments.
 
-Specifically, `-f` is not an optional option, following which the path of to be analyzed Wasm binary should be given.
-`--stdin STRING` and `--sym_stdin N` can pass concrete or symbolic bytes through the stdin stream.
-The difference between them is that a concrete string has to be passed through `--stdin`, and a string consisting of `N` symbolic characters need to be passed through `--sym_stdin`.
-For example, `--sym_stdin 5` will input 5 symbolic bytes if some functions need to read input from stdin.
+Specifically, `-f` option is mandatory, and it must be followed by the path of the Wasm binary to be analyzed. The `--stdin STRING` and `--sym_stdin N` options allow users to pass concrete and symbolic bytes through the stdin stream, respectively. A concrete string must be passed using `--stdin`, while a string consisting of `N` symbolic characters must be passed using `--sym_stdin`. For example, `--sym_stdin 5` inputs 5 symbolic bytes for functions that read from stdin.
 
-Similarly, `--args STRING1, STRING2, ...` and `--sym_args N1, N2, ...` pass concrete and symbolic arguments to the Wasm binary.
-For instance, if `main` requires three arguments where each of them should be two bytes, `--sym_args 2 2 2` is enough.
+Similarly, `--args STRING1, STRING2, ...` and `--sym_args N1, N2, ...` options pass concrete and symbolic arguments to the Wasm binary. For instance, if `main` requires three arguments, each two bytes long, `--sym_args 2 2 2` is enough.
 
-Some programs will interact with files and conduct reading and writing.
-WASEM can also simulate this by a *symbolic file system*.
-Users have to apply `--sym_files N M` to create `N` symbolic files, where each of them has (or can hold) `M` bytes at most.
+Some programs interact with files. WASEM simulates this using a *symbolic file system*. Users can create `N` symbolic files, each with up to `M` bytes, using the `--sym_files N M` option.
 
-Finally, as several high-level programming languages can be compiled to Wasm binaries. We have achieved some specific optimizations, but users have to indicate the source language by `--source_types`.
+As multiple high-level programming languages can be compiled to Wasm binaries, we have implemented specific optimizations. To take advantage of these optimizations, users must indicate the source language using the `--source_type` option.
 
 ### Features
-`--entry` can tell WASEM which function is the entry, from which the symbolic execution performs.
-Note that the `__original_main` is the default entry for all Wasm binaries following WASI standard.
-The toolchain we mentioned in the [previous section](README.md#Prerequisites) can generate Wasm binaries following WASI standard.
+`--entry` specifies the entry function from which symbolic execution begins. By default, the entry function is `__original_main`. Users must specify a proper entry function to ensure the symbolic execution is performed correctly.
 
-As we mentioned in our paper, the given Wasm will be parsed into ICFG.
-Sometimes visualizing the ICFG is necessary for debugging.
-Thus `--visualize` can achieve this goal.
+The input Wasm is parsed into an Interprocedural Control Flow Graph (ICFG), which can be visualized for debugging purposes using the `--visualize` option (requires `graphviz`, installable via `sudo apt install graphviz` on Ubuntu).
 
-During symbolic execution, constraints solving is a bottleneck for the performance.
-We have implemented a set of optimizations on the solving process.
-The `--incremental` refers to *incremental solving*, which may not always introduce positive optimizations during the analysis. Therefore, we set a flag to allow users to decidie if enable the incremental solving.
+The constraint solving process is a bottleneck for symbolic execution performance; however, we have implemented some optimizations to mitigate this issue. The `--incremental` flag enables *incremental solving*. Note that it may not always yield positive results during analysis, and is therefore optional.
 
-The `-v` is an optional option.
-Accoding to different values, different levels of logging can be generated, which may help the debugging.
+The `-v` option controls the logging level, allowing users to adjust the verbosity of logging output to aid in debugging.
 
 ### Analyze
-The `-s` is a mandatory option.
-It will enable the symbolic execution analysis on the given Wasm binary.
+The `-s` is a mandatory option. It enables symbolic execution analysis on the given Wasm binary.
 
-## Example
-If we want to execute a program which does not requrie any extra arguments and input, the command should be:
+The `--search` option specifies the search algorithm used during symbolic execution. The default algorithm is Depth-First Search (DFS), but users can choose from the following options: `bfs`, `random`, and `interval`.
 
-```shell
-python main.py -f test_files/hello_world.wasm -s
+### Output
+The output of WASEM, including logs and results, is stored in the `output` folder, with each file named according to the pattern `NAME_TIMESTAMP`.
+
+The log file follows a specific format, which illustrates the call trace of the anaylzed program:
+
+```log
+2024-07-01 07:50:36,191 | WARNING | Totally remove 27 unrelated functions, around 50.000% of all functions
+2024-07-01 07:50:36,205 | INFO | Call: __original_main -> __main_void
+2024-07-01 07:50:36,218 | INFO | Call: __main_void -> __wasi_args_sizes_get
+2024-07-01 07:50:36,219 | INFO | Call: args_sizes_get (import)
+2024-07-01 07:50:36,219 | INFO | 	args_sizes_get, argc_addr: 70792, arg_buf_size_addr: 70796
+2024-07-01 07:50:36,219 | INFO | Return: args_sizes_get (import)
+2024-07-01 07:50:36,219 | INFO | Return: __wasi_args_sizes_get
+...
 ```
 
-The corresponding logging and results of feasible paths will be generated in `output` folder.
+The result is a JSON file containing feasible paths with their solutions, formatted as follows:
 
-If compilicated arguments are required. For example, a `base64` program whose `main` is like:
+```json
+{
+    "Status": "xxx",
+    "Solution": {"xxx"},
+    "Output": [
+        {
+            "name": "stdout",
+            "output": "xxx"
+        },
+        {
+            "name": "stderr",
+            "output": "xxx"
+        }
+    ]
+}
+```
+
+You can use `./clean.sh -f` to remove all files in the `output` folder.
+
+### Example
+To execute a program that takes no extra arguments or input, use the following command:
+
+```shell
+python3 launcher.py -f PATH_TO_WASM_BINARY -s
+```
+
+If compilicated arguments are required, for example, a `base64` program with a `main` function like:
 
 ```c
 // main of base64
@@ -128,13 +163,13 @@ int main(int argc, char **argv)
   // encode or decode
 }
 ```
-We can see that the `base64` not only requires a two bytes arguments, but also needs a string of input to encode or decode. Also, the encoded or decoded results will go to a file.
-Thus, the command to analyze the `base64` is like:
+
+The `base64` program expects two-byte arguments and a string input to encode or decode, producing output that is written to a file.
+Thus, the command to analyze `base64` is like:
 
 ```shell
-python main.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10 -v info
+python3 launcher.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10
 ```
-
 
 ## SGX Mode
 

@@ -11,10 +11,9 @@ on:
       - '**.py'
       - ".github/workflows/*.yml"
   workflow_dispatch:
-  
+
 jobs:
   test:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -25,6 +24,7 @@ jobs:
           - "3.10"
           - "3.11"
           - "3.12"
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
@@ -49,7 +49,45 @@ jobs:
         run: |
           curl -JLO "https://github.com/WebAssembly/wabt/releases/download/1.0.32/wabt-1.0.32-ubuntu.tar.gz"
           tar xzf wabt-1.0.32-ubuntu.tar.gz
+      - name: Cache wasi-sdk
+        id: cache-wasi-sdk
+        uses: actions/cache@v4
+        with:
+          path: wasi-sdk-22.0
+          key: wasi-sdk
+      - name: Install wasi-sdk
+        if: steps.cache-wasi-sdk.outputs.cache-hit != 'true'
+        run: |
+          curl -JLO "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-22/wasi-sdk-22.0-linux.tar.gz"
+          tar xzf wasi-sdk-22.0-linux.tar.gz
+      - name: Cache wasmtime
+        id: cache-wasmtime
+        uses: actions/cache@v4
+        with:
+          path: ~/.wasmtime
+          key: wasmtime
+      - name: Install wasmtime
+        if: steps.cache-wasmtime.outputs.cache-hit != 'true'
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          rustup target add wasm32-wasi
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+          check-latest: true
+          cache: true
+      - name: Install tinygo
+        run: |
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.32.0/tinygo_0.32.0_amd64.deb
+          sudo dpkg -i tinygo_0.32.0_amd64.deb
       - name: Run pytest
         run: |
           export PATH=$(pwd)/wabt-1.0.32/bin:$PATH
-          pytest test/test.py --tb=short --durations=0
+          export PATH=$(pwd)/wasi-sdk-22.0/bin:$PATH
+          export PATH=$(pwd)/.cargo/bin:$PATH
+          export PATH=$(pwd)/.wasmtime/bin:$PATH
+          pytest test.py --tb=short --durations=0
+          pytest test/test_linux.py --tb=short --durations=0

@@ -11,7 +11,7 @@ import sys
 
 def do_symgx(args):
     from eunomia.arch.wasm.configuration import Configuration
-    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S"))
+    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S%f"))
     from SymGX import SymGX
 
     Configuration.set_file(args.file.name)
@@ -24,7 +24,7 @@ def do_symgx(args):
 
 def do_normal(args):
     from seewasm.arch.wasm.configuration import Configuration
-    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S"))
+    Configuration.set_start_time(datetime.now().strftime("%Y%m%d%H%M%S%f"))
 
     print(args)
 
@@ -50,7 +50,7 @@ def do_normal(args):
         Configuration.set_algo(args.search)
 
         command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
-        makedirs(path.dirname(command_file_name), exist_ok=True)
+        makedirs(path.dirname(command_file_name), exist_ok=False)
         with open(command_file_name, 'w') as fp:
             json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
 
@@ -85,7 +85,7 @@ def do_normal(args):
 
 def parse():
     parser = argparse.ArgumentParser(
-        description='WASEM, a general symbolic execution framework for WebAssembly (WASM) binaries ')
+        description='WASEM, a general symbolic execution framework for WebAssembly (WASM) binaries')
 
     inputs = parser.add_argument_group('Input arguments')
     inputs.add_argument('-f', '--file',
@@ -162,7 +162,7 @@ def main():
         print(f"Memory limit set to {args.max_memory} MB", flush=True)
 
     job_start_time = datetime.now()
-    current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
+    current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S_%f")
     print(f"Start to analyze: {current_time_start}", flush=True)
     print(f"Running...", flush=True)
 
@@ -173,7 +173,7 @@ def main():
 
     print(f"Finished.", flush=True)
     job_end_time = datetime.now()
-    current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
+    current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S_%f")
     print(f"End of analyze: {current_time_end}", flush=True)
     elapsed_time = job_end_time - job_start_time
     print(f"Time elapsed: {elapsed_time}", flush=True)
