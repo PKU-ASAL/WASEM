@@ -52,9 +52,4 @@ jobs:
       - name: Run pytest
         run: |
           export PATH=$(pwd)/wabt-1.0.32/bin:$PATH
-          pytest test/test.py --tb=short --durations=0 --cov
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          pytest test/test.py --tb=short --durations=0
