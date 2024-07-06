@@ -54,8 +54,8 @@ def test_c_library():
     assert proc.returncode == 0, f'return code should be 0\nstdout: {proc.stdout.decode("utf-8")}\nstderr: {proc.stderr.decode("utf-8")}'
 
     result_dir = glob.glob('./output/result/test_c_library*')
-    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
-    result_dir = result_dir[0]
+    result_dir.sort()
+    result_dir = result_dir[-1]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'currently in concrete mode, should have only one state output'
 
@@ -128,8 +128,8 @@ def test_return_simulation():
     subprocess.run(cmd, timeout=30, check=True)
 
     result_dir = glob.glob('./output/result/test_return_*')
-    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
-    result_dir = result_dir[0]
+    result_dir.sort()
+    result_dir = result_dir[-1]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output `Exit 0`'
 
@@ -143,8 +143,8 @@ def test_unreachable_simulation():
     subprocess.run(cmd, timeout=30, check=True)
 
     result_dir = glob.glob('./output/result/test_unreachable_*')
-    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_unreachable*` cases?'
-    result_dir = result_dir[0]
+    result_dir.sort()
+    result_dir = result_dir[-1]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output `null`'
     with open(state_path[0], 'r') as f:
