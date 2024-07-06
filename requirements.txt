@@ -1,7 +1,7 @@
-pyelftools==0.27
+pyelftools==0.31
 graphviz==0.18
 leb128==1.0.4
-pyelftools==0.27
+pyelftools==0.31
 pytest==6.2.5
 pytest-parallel==0.1.1
 sh==1.14.2
