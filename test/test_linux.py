@@ -31,9 +31,8 @@ def test_sgx_wasm_can_be_fully_analyzed():
     cmd = ['/usr/bin/env', 'bash', 'run.sh', 'SGXCryptoFile']
     subprocess.run(cmd, timeout=60, check=True)
     result_dir = glob.glob('./output/result/sgxcrypto_*')
-    # sort and use last one
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/bug_state*.json')
     assert len(state_path) == 2, 'should have two bug states'
 
@@ -95,8 +94,8 @@ def test_hello_c_to_wasm():
     os.remove("hello_c.wat")
 
     result_dir = glob.glob('./output/result/hello_c*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output'
     with open(state_path[0], 'r') as f:
@@ -109,15 +108,16 @@ def test_hello_c_to_wasm():
 @pytest.mark.parametrize('algo', ['dfs', 'bfs', 'random', 'interval'])
 def test_sym_c_to_wasm(algo):
     source_path = "./test/c/src/sym.c"
-    cmd = ["clang", "-g", source_path, "-o", "sym_c.wasm"]
+    wasm_path = f"sym_c_{algo}.wasm"
+    cmd = ["clang", "-g", source_path, "-o", wasm_path]
     subprocess.run(cmd, timeout=60, check=True)
-    assert os.path.exists("sym_c.wasm"), "sym_c.wasm not found. Compilation failed."
-    cmd = [sys.executable, 'main.py', '-f', "sym_c.wasm", '-s', '--sym_args', '1', '-v', 'info', '--source_type', 'c', '--entry', '__main_void', '--search', algo]
+    assert os.path.exists(wasm_path), f"{wasm_path} not found. Compilation failed."
+    cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '--sym_args', '1', '-v', 'info', '--source_type', 'c', '--entry', '__main_void', '--search', algo]
     subprocess.run(cmd, timeout=60, check=True)
 
-    result_dir = glob.glob('./output/result/sym_c*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    result_dir = glob.glob(f'./output/result/{wasm_path[:-5]}*')
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 3, 'should have three states output'
     for state in state_path:
@@ -132,14 +132,14 @@ def test_sym_c_to_wasm(algo):
         if state['Return'] != 1: # only test the printable input, should be a char in a~z
             continue
         # call wasmtime with inp
-        cmd = ["wasmtime", "sym_c.wasm", inp]
+        cmd = ["wasmtime", wasm_path, inp]
         p = subprocess.run(cmd, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # compare results
         assert p.returncode == analyzed_return, f'analyzed return code {analyzed_return}, wasmtime returned {p.returncode}, input {inp}, wasmtime stderr {p.stderr.decode("utf-8")}'
         assert p.stdout.decode('utf-8') == analyzed_stdout, f'output mismatched, analyzed {analyzed_stdout}, wasmtime returned {p.stdout.decode("utf-8")}'
 
-    os.remove("sym_c.wasm")
-    os.remove("sym_c.wat")
+    os.remove(wasm_path)
+    os.remove(wasm_path.replace('.wasm', '.wat'))
 
 def test_hello_rust_to_wasm():
     source_dir = "./test/rust/hello"
@@ -153,8 +153,8 @@ def test_hello_rust_to_wasm():
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/hello_rust*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output'
     with open(state_path[0], 'r') as f:
@@ -175,8 +175,8 @@ def test_hello_go_to_wasm():
     os.remove("hello_go.wat")
 
     result_dir = glob.glob('./output/result/hello_go*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output'
     with open(state_path[0], 'r') as f:

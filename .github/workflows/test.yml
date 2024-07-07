@@ -99,6 +99,7 @@ jobs:
           export PATH=$(pwd)/.cargo/bin:$PATH
           export PATH=$(pwd)/.wasmtime/bin:$PATH
           pytest test.py --tb=short --durations=0
+          ./clean.sh -f
           pytest test/test_linux.py --tb=short --durations=0
   test_result:
     if: needs.check_skip.outputs.should_skip != 'true' && always()

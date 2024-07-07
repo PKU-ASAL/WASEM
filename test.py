@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import glob
 import os
@@ -29,8 +30,8 @@ def test_c_library():
     assert proc.returncode == 0, f'return code should be 0\nstdout: {proc.stdout.decode("utf-8")}\nstderr: {proc.stderr.decode("utf-8")}'
 
     result_dir = glob.glob('./output/result/test_c_library*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'currently in concrete mode, should have only one state output'
 
@@ -61,8 +62,8 @@ def test_return_simulation():
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_return_*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state returning `1`'
 
@@ -76,8 +77,8 @@ def test_unreachable_simulation():
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_unreachable_*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 1, 'should have only one state output `null`'
     with open(state_path[0], 'r') as f:
@@ -90,8 +91,8 @@ def test_c_sym_args():
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/sym_c*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 3, 'should have three states output'
     for state in state_path:
@@ -109,12 +110,20 @@ def test_c_sym_args():
 
 def test_password_sym_args():
     wasm_path = './test/password.wasm'
+    assert os.path.exists(wasm_path), 'password.wasm not found'
+    # copy password.wasm for this test
+    suffix = datetime.now().strftime("%Y%m%d%H%M%S%f")
+    wasm_path = f'./test/password_{suffix}.wasm'
+    subprocess.run(['cp', './test/password.wasm', wasm_path], timeout=5, check=True)
+    # analyze
     cmd = [sys.executable, 'main.py', '-f', wasm_path, '-s', '--sym_args', '10', '--source_type', 'c', '--entry', '_start', '-v', 'info']
     subprocess.run(cmd, timeout=60, check=True)
+    # remove copied wasm
+    subprocess.run(['rm', wasm_path, wasm_path.replace('.wasm', '.wat')], timeout=5, check=True)
 
-    result_dir = glob.glob('./output/result/password*')
-    result_dir.sort()
-    result_dir = result_dir[-1]
+    result_dir = glob.glob(f'./output/result/password_{suffix}*')
+    assert len(result_dir) == 1, 'should have only one result directory, do you have multiple runs?'
+    result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
     assert len(state_path) == 6, 'should have six states output'
     for state in state_path:
