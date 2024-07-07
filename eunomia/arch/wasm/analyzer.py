@@ -934,7 +934,8 @@ class WasmModuleAnalyzer(object):
         (debug_info_sec_name, debug_aranges_sec_name, debug_abbrev_sec_name,
             debug_str_sec_name, debug_line_sec_name, debug_frame_sec_name,
             debug_loc_sec_name, debug_ranges_sec_name, debug_pubtypes_name,
-            debug_pubnames_name, debug_addr_name, debug_str_offsets_name) = dwarf_section_names
+            debug_pubnames_name, debug_addr_name, debug_str_offsets_name,
+            debug_line_str, debug_loclists, debug_rnglists, debug_sup, gnu_debugaltlink) = dwarf_section_names
 
         self.dwarf_info = DWARFInfo(config=DwarfConfig(
             little_endian=True,
@@ -951,8 +952,14 @@ class WasmModuleAnalyzer(object):
             debug_line_sec=data[debug_line_sec_name],
             debug_pubtypes_sec=data[debug_pubtypes_name],
             debug_pubnames_sec=data[debug_pubnames_name],
-            # debug_addr_sec=data[debug_addr_name],
-            # debug_str_offsets_sec=data[debug_str_offsets_name],
+            # The following sections require pyelftools>=0.31, use `pip install --upgrade "pyelftools>=0.31"` to upgrade
+            debug_addr_sec=data[debug_addr_name],
+            debug_str_offsets_sec=data[debug_str_offsets_name],
+            debug_line_str_sec=data[debug_line_str],
+            debug_loclists_sec=data[debug_loclists],
+            debug_rnglists_sec=data[debug_rnglists],
+            debug_sup_sec=data[debug_sup],
+            gnu_debugaltlink_sec=data[gnu_debugaltlink],
         )
 
     def is_compiled_with_emscripten(self):

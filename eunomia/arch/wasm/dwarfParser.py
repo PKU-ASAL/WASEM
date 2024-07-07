@@ -9,7 +9,8 @@ from eunomia.arch.wasm.memory import lookup_symbolic_memory_data_section
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
                        '.debug_str', '.debug_line', '.debug_frame',
                        '.debug_loc', '.debug_ranges', '.debug_pubtypes',
-                       '.debug_pubnames', '.debug_addr', '.debug_str_offsets')
+                       '.debug_pubnames', '.debug_addr', '.debug_str_offsets',
+                       '.debug_line_str', '.debug_loclists', '.debug_rnglists', '.debug_sup', '.gnu_debugaltlink')
 EMSCRIPTEN_SP_GLOBAL_INDEX = 0
 
 
