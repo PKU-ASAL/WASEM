@@ -17,7 +17,7 @@ If you encounter issues building the wheel for leb128, update pip and wheel, the
 
 ```shell
 pip install --upgrade pip wheel
-pip install --force-reinstall leb128==1.0.4
+pip install --force-reinstall leb128
 ```
 
 To verify everything is set up correctly, run the following command:
